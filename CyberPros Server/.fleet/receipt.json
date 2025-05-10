@@ -3,27 +3,12 @@
     "spec": {
         "template_id": "kmt",
         "targets": {
-            "android": {
-                "ui": [
-                    "compose"
-                ]
-            },
-            "ios": {
-                "ui": [
-                    "compose"
-                ]
-            },
-            "desktop": {
-                "ui": [
-                    "compose"
-                ]
-            },
-            "web": {
-                "ui": [
-                    "compose"
+            "server": {
+                "engine": [
+                    "ktor"
                 ]
             }
         }
     },
-    "timestamp": "2025-04-01T11:29:23.058222544Z"
+    "timestamp": "2025-05-10T14:41:21.394010980Z"
 }
