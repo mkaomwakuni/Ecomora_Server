@@ -3,3 +3,4 @@ plugins {
     // in each subproject's classloader
     alias(libs.plugins.kotlinJvm) apply false
 }
+

@@ -1,31 +1,15 @@
 rootProject.name = "CyberPros-Server"
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-pluginManagement {
+include("server")
+
+buildscript {
     repositories {
-        google {
-            mavenContent {
-                includeGroupAndSubgroups("androidx")
-                includeGroupAndSubgroups("com.android")
-                includeGroupAndSubgroups("com.google")
-            }
+        maven {
+            url = uri("https://plugins.gradle.org/m2/")
         }
-        mavenCentral()
-        gradlePluginPortal()
+
+    }
+    dependencies {
+        classpath("com.github.johnrengelman:shadow:8.1.1")
     }
 }
-
-dependencyResolutionManagement {
-    repositories {
-        google {
-            mavenContent {
-                includeGroupAndSubgroups("androidx")
-                includeGroupAndSubgroups("com.android")
-                includeGroupAndSubgroups("com.google")
-            }
-        }
-        mavenCentral()
-    }
-}
-
-include(":server")
