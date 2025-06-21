@@ -1,0 +1,17 @@
+package est.tunzo.cyberpros.server.data.repository.users
+
+import est.tunzo.cyberpros.server.domain.model.users.Users
+
+/**
+ * Data Access Object (DAO) interface for managing user-related database operations.
+ *
+ * @see Users The user model representing the structure of user data
+ */
+interface UsersDao {
+
+    suspend fun insertUser(
+        username: String,
+        password: String,
+        email: String
+    ):  Users?
+}

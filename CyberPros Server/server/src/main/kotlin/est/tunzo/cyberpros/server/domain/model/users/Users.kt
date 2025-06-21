@@ -2,6 +2,14 @@ package est.tunzo.cyberpros.server.domain.model.users
 
 import kotlinx.serialization.Serializable
 
+/**
+ * Represents a user in the CyberPros system.
+ *
+ * @property id Unique identifier for the user
+ * @property username User's chosen username
+ * @property email User's email address
+ * @property password Hashed user password
+ */
 @Serializable
 data class Users (
     val id : Long,
