@@ -2,9 +2,11 @@ package est.tunzo.cyberpros.server.data.local.table
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import est.tunzo.cyberpros.server.data.local.table.users.UsersTable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 
 /**
@@ -23,6 +25,10 @@ object DatabaseFactory {
         Database.connect(hikariDataSource())
         //Start an initial (empty) transaction to ensure the connection is working.
         transaction {
+            Database.connect(hikariDataSource())
+            transaction {
+                SchemaUtils.create(UsersTable)
+            }
         }
     }
 
