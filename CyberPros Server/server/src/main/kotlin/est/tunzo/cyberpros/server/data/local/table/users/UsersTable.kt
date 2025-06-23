@@ -12,6 +12,9 @@ object UsersTable: Table("Users") {
     val username: Column<String> = varchar("username", 48)
     val password: Column<String> = varchar("password", 48)
     val email: Column<String> = varchar("email", 48)
+    val fullName: Column<String> = varchar("fullname",80)
+    val phoneNumber: Column<String> = varchar("phoneNumber", length = 130)
+    val userRole: Column<String> = varchar("userRole", length = 51)
 
     override val primaryKey: PrimaryKey = PrimaryKey(id)
 }

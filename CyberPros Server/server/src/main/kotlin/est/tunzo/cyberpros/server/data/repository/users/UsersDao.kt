@@ -12,6 +12,13 @@ interface UsersDao {
     suspend fun insertUser(
         username: String,
         password: String,
-        email: String
+        email: String,
+        phoneNumber: String,
+        userRole: String
     ):  Users?
+
+    suspend fun getAllUsers(): List<Users>?
+    suspend fun getUsersById(id: Long): Users?
+    suspend fun deleteUserById(id: Long): Int
+    suspend fun updateUsers(id: Long,username: String,email: String,password: String): Int
 }
