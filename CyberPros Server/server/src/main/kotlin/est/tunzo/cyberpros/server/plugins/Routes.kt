@@ -10,7 +10,11 @@ import est.tunzo.cyberpros.server.domain.repository.category.CategoriesRepositor
 import est.tunzo.cyberpros.server.domain.repository.users.UsersRepository
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
+import io.ktor.http.content.PartData
+import io.ktor.http.content.forEachPart
+import io.ktor.http.content.streamProvider
 import io.ktor.server.request.receive
+import io.ktor.server.request.receiveMultipart
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
@@ -18,7 +22,10 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
+import kotlinx.datetime.Clock
 import sun.jvm.hotspot.HelloWorld.e
+import java.nio.file.Files
+import java.nio.file.Paths
 
 fun Route.users(
     db: UsersRepository
@@ -185,156 +192,258 @@ fun Route.users(
             )
         }
     }
+}
 
-    fun Route.category(
-       db: CategoriesRepositoryImpl
-    ) {
-        post("v1/categories") {
-            val parameters = call.receive<Parameters>()
-            val name = parameters["name"] ?: return@post call.respondText(
-                text = "Name is Missing",
-                status = HttpStatusCode.BadRequest
-            )
-            val description = parameters["description"] ?: return@post call.respondText(
-                text = "Description Missing",
-                status = HttpStatusCode.BadRequest
-            )
-            val isVisible = parameters["isVisible"] ?: return@post call.respondText(
-                text = "isVisible Missing",
-                status = HttpStatusCode.BadRequest
-            )
-            val imageUrl = parameters["imageUrl"] ?: return@post call.respondText(
-                text = "ImageUrl Missing",
-                status = HttpStatusCode.BadRequest
-            )
+fun Route.category(
+    db: CategoriesRepositoryImpl
+) {
+    post("v1/categories") {
+        val parameters = call.receive<Parameters>()
+        val name = parameters["name"] ?: return@post call.respondText(
+            text = "Name is Missing",
+            status = HttpStatusCode.BadRequest
+        )
+        val description = parameters["description"] ?: return@post call.respondText(
+            text = "Description Missing",
+            status = HttpStatusCode.BadRequest
+        )
+        val isVisible = parameters["isVisible"] ?: return@post call.respondText(
+            text = "isVisible Missing",
+            status = HttpStatusCode.BadRequest
+        )
+        val imageUrl = parameters["imageUrl"] ?: return@post call.respondText(
+            text = "ImageUrl Missing",
+            status = HttpStatusCode.BadRequest
+        )
 
-            try {
-                val category = db.insertCategory(
-                    name, description, isVisible.toBoolean(), imageUrl
-                )
-                category?.id.let { categoryId ->
-                    call.respond(
-                        status = HttpStatusCode.OK,
-                        "Category Added - Success"
-                    )
-                }
-            } catch (e: Exception) {
+        try {
+            val category = db.insertCategory(
+                name, description, isVisible.toBoolean(), imageUrl
+            )
+            category?.id.let { categoryId ->
                 call.respond(
-                    HttpStatusCode.Unauthorized,
-                    "Error Inserting the Category"
+                    status = HttpStatusCode.OK,
+                    "Category Added - Success"
                 )
             }
-        }
-        get("v1/categories") {
-            try {
-                val category = db.getAllCategories()
-                if (category?.isNotEmpty() == true) {
-                    call.respond(
-                        HttpStatusCode.OK,
-                        "No Users Found"
-                    )
-                } else {
-                    call.respond(
-                        HttpStatusCode.BadRequest,
-                        "No Category Found"
-                    )
-                }
-            } catch (e: Exception) {
-                call.respond(
-                    HttpStatusCode.Unauthorized,
-                    "Error While Fetching  ${e.message}"
-                )
-            }
-        }
-        get("v1/categories/{id}") {
-            val id = call.parameters["id"] ?: return@get call.respond(
+        } catch (e: Exception) {
+            call.respond(
                 HttpStatusCode.Unauthorized,
-                "Invalid Category"
+                "Error Inserting the Category"
             )
-            try {
-                val categoryId = id.toLong()
-                val categories = db.getCategoryById(categoryId)
-                if (categories == null) {
-                    call.respond(
-                        HttpStatusCode.BadRequest,
-                        "No Category Found..."
-                    )
-                } else {
-                    call.respond(
-                        HttpStatusCode.OK,
-                        categories
-                    )
-                }
-            } catch (e: Exception) {
+        }
+    }
+    get("v1/categories") {
+        try {
+            val category = db.getAllCategories()
+            if (category?.isNotEmpty() == true) {
+                call.respond(
+                    HttpStatusCode.OK,
+                    "No Users Found"
+                )
+            } else {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    "Error Fetching the Categories ${e.message}"
+                    "No Category Found"
                 )
             }
-        }
-        delete("v1/categories/{id}") {
-            val id = call.parameters["id"] ?: return@delete call.respond(
-                HttpStatusCode.BadRequest,
-                "Error Occurred: ID Missing"
+        } catch (e: Exception) {
+            call.respond(
+                HttpStatusCode.Unauthorized,
+                "Error While Fetching  ${e.message}"
             )
-            try {
-                val category = db.deleteCategory(id.toLong())
-                if (category == 1) {
-                    call.respond(
-                        HttpStatusCode.OK,
-                        "Category Deleted"
-                    )
-                } else {
-                    call.respond(HttpStatusCode.BadRequest, "Id Not Found...")
-                }
-            } catch (e: Exception) {
+        }
+    }
+    get("v1/categories/{id}") {
+        val id = call.parameters["id"] ?: return@get call.respond(
+            HttpStatusCode.Unauthorized,
+            "Invalid Category"
+        )
+        try {
+            val categoryId = id.toLong()
+            val categories = db.getCategoryById(categoryId)
+            if (categories == null) {
                 call.respond(
-                    HttpStatusCode.Unauthorized,
-                    "Error Fetching Categories ${e.message}"
+                    HttpStatusCode.BadRequest,
+                    "No Category Found..."
+                )
+            } else {
+                call.respond(
+                    HttpStatusCode.OK,
+                    categories
                 )
             }
+        } catch (e: Exception) {
+            call.respond(
+                HttpStatusCode.BadRequest,
+                "Error Fetching the Categories ${e.message}"
+            )
         }
-        put("v1/categories/{id}") {
-            val id = call.parameters["id"]?.toLong() ?: return@put call.respondText(
-                text = "Invalid Id",
-                status = HttpStatusCode.BadRequest
+    }
+    delete("v1/categories/{id}") {
+        val id = call.parameters["id"] ?: return@delete call.respond(
+            HttpStatusCode.BadRequest,
+            "Error Occurred: ID Missing"
+        )
+        try {
+            val category = db.deleteCategory(id.toLong())
+            if (category == 1) {
+                call.respond(
+                    HttpStatusCode.OK,
+                    "Category Deleted"
+                )
+            } else {
+                call.respond(HttpStatusCode.BadRequest, "Id Not Found...")
+            }
+        } catch (e: Exception) {
+            call.respond(
+                HttpStatusCode.Unauthorized,
+                "Error Fetching Categories ${e.message}"
             )
-            val parameters = call.receive<Parameters>()
-            val name = parameters["name"] ?: return@put call.respondText(
-                text = "Invalid Name",
-                status = HttpStatusCode.BadRequest
-            )
-            val description = parameters["description"] ?: return@put call.respondText(
-                text = "Description Invalid",
-                status = HttpStatusCode.BadRequest
-            )
-            val isVisible = parameters["isVisible"] ?: return@put call.respondText(
-                text = "isVisible Invalid",
-                status = HttpStatusCode.BadRequest
-            )
-            val imageUrl = parameters["imageUrl"] ?: return@put call.respondText(
-                text = "ImageUrl Invalid",
-                status = HttpStatusCode.BadRequest
-            )
-            try {
-                val result = id.let { categoryId ->
-                    db.updateCategory(categoryId, name, description, isVisible.toBoolean(), imageUrl)
+        }
+    }
+    put("v1/categories/{id}") {
+        val id = call.parameters["id"]?.toLong() ?: return@put call.respondText(
+            text = "Invalid Id",
+            status = HttpStatusCode.BadRequest
+        )
+        val multipart = call.receiveMultipart()
+        var name: String? = null
+        var description: String? = null
+        var isVisible: Boolean? = null
+        var imageUrl: String? = null
+
+        multipart.forEachPart { part ->
+            when (part) {
+                is PartData.FormItem -> {
+                    when (part.name) {
+                        "name" -> name = part.value
+                        "description" -> description = part.value
+                        "isVisible" -> isVisible = part.value.toBoolean()
+                    }
                 }
-                if (result == 1) {
-                    call.respond(HttpStatusCode.OK, "Update Successfully $result")
-                } else {
-                    call.respond(
-                        HttpStatusCode.BadRequest,
-                        "Error Occurred"
-                    )
+                is PartData.FileItem -> {
+                    val fileBytes = part.streamProvider().readBytes()
+                    val fileName = part.originalFileName ?: "uploaded_image_${System.currentTimeMillis()}"
+                    val directoryPath = Paths.get("/var/www/uploads/") // Adjust the directory path as needed
+
+                    // Create the directory if it doesn't exist
+                    if (!Files.exists(directoryPath)) {
+                        Files.createDirectories(directoryPath)
+                    }
+
+                    val filePath = "$directoryPath/$fileName"
+                    Files.write(Paths.get(filePath), fileBytes)
+                    imageUrl = "/uploads/categories/${fileName.replace(" ", "_")}"
+                }
+                is PartData.BinaryChannelItem -> TODO()
+                is PartData.BinaryItem -> TODO()
+            }
+            part.dispose()
+        }
+
+        name ?: return@put call.respond(
+            status = HttpStatusCode.BadRequest,
+            "Name Missing"
+        )
+        description ?: return@put call.respond(
+            status = HttpStatusCode.BadRequest,
+            "Description Missing"
+        )
+        isVisible ?: return@put call.respond(
+            status = HttpStatusCode.BadRequest,
+            "isVisible Missing"
+        )
+        imageUrl ?: return@put call.respond(
+            status = HttpStatusCode.BadRequest,
+            "ImageUrl Missing"
+        )
+
+        try {
+            val result = id.let { categoryId ->
+                db.updateCategory(categoryId, name, description, isVisible, imageUrl)
+            }
+            if (result == 1) {
+                call.respond(HttpStatusCode.OK, "Update Successfully $result")
+            } else {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Error Occurred"
+                )
+            }
+
+        } catch (e: Exception) {
+            call.respond(
+                status = HttpStatusCode.Unauthorized,
+                "Error Updating Category: ${e.message}"
+            )
+        }
+    }
+    post("v1/categories") {
+        val threads = call.receiveMultipart()
+        var name: String? = null
+        var description: String? = null
+        var isVisible: Boolean? = null
+        var imageUrl: String? = null
+
+        threads.forEachPart { part->
+            when(part) {
+                is PartData.FormItem -> {
+                    when(part.name) {
+                        "name" -> name = part.value
+                        "description" ->description = part.value
+                        "isVisible" -> isVisible = part.value.toBoolean()
+                    }
                 }
 
-            } catch (e: Exception) {
+                is PartData.FileItem -> {
+                    val fileBytes = part.streamProvider().readBytes()
+                    val fileName = part.originalFileName ?: "uploaded_image_${System.currentTimeMillis()}"
+                    val directoryPath = Paths.get("/var/www/uploads/")
+                    if (!Files.exists(directoryPath)) {
+                        Files.createDirectories(directoryPath)
+                    }
+                    val filePath = "$directoryPath/$fileName"
+                    Files.write(Paths.get(filePath), fileBytes)
+                    imageUrl = "/uploads/categories/${fileName.replace(" ", "_")}"
+                }
+
+                is PartData.BinaryChannelItem -> TODO()
+                is PartData.BinaryItem -> TODO()
+            }
+            part.dispose()
+        }
+
+        name ?: return@post call.respond(
+            status = HttpStatusCode.BadRequest,
+            "Name Missing"
+        )
+        description ?: return@post call.respond(
+            status = HttpStatusCode.BadRequest,
+            "Description Missing"
+        )
+        isVisible ?: return@post call.respond(
+            status = HttpStatusCode.BadRequest,
+            "isVisible Missing"
+        )
+        imageUrl ?: return@post call.respond(
+            status = HttpStatusCode.BadRequest,
+            "ImageUrl Missing"
+        )
+
+        try {
+            val category = db.insertCategory(name!!, description!!, isVisible!!, imageUrl!!)
+            category?.id.let { categoryId ->
                 call.respond(
-                    status = HttpStatusCode.Unauthorized,
-                    "Error Updating Category: ${e.message}"
+                    status = HttpStatusCode.OK,
+                    "Category Successfully Added to Server : $category"
                 )
             }
+        } catch (e: Exception) {
+            call.respond(
+                HttpStatusCode.Unauthorized,
+                "Error Adding Category To Server : ${e.message}"
+            )
         }
     }
 }
