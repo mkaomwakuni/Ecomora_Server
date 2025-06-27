@@ -3,6 +3,7 @@ package est.ecomora.server.data.local.table
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import est.ecomora.server.data.local.table.category.CategoriesTable
+import est.ecomora.server.data.local.table.products.ProductsTable
 import est.ecomora.server.data.local.table.users.UsersTable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -28,7 +29,7 @@ object DatabaseFactory {
         transaction {
             Database.connect(hikariDataSource())
             transaction {
-                SchemaUtils.create(UsersTable, CategoriesTable)
+                SchemaUtils.create(UsersTable, CategoriesTable, ProductsTable)
             }
         }
     }

@@ -547,4 +547,144 @@ fun Route.products(
             )
         }
     }
+    get("v1/products") {
+        try {
+            val items = db.getAllProduct()
+            if (items?.isNotEmpty()==true){
+                call.respond(HttpStatusCode.OK,
+                    items)
+            } else {
+                call.respond(
+                    HttpStatusCode.Unauthorized,
+                    "No Items We Found"
+                )
+            }
+        } catch (e: Exception) {
+            call.respond(
+            HttpStatusCode.BadRequest,
+            "Error Fetching Items ${e.message}"
+            )
+        }
+    }
+
+    delete("v1/products{id}") {
+        val id = call.parameters["id"]?: return@delete call.respond(
+            HttpStatusCode.BadRequest,
+            "Invalid Item ID"
+        )
+        try {
+            val items = db.deleteProductById(id.toLong())
+            if (items == null) {
+                call.respond(
+                    HttpStatusCode.OK,
+                    "Item Deleted - Success"
+                )
+            } else {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Item Not Found - Failure"
+                )
+            }
+        } catch (e: Exception) {
+            call.respond(
+            HttpStatusCode.BadRequest,
+            "Error Deleting Items ${e.message}"
+            )
+        }
+    }
+    put("v1/products/{id}") {
+        val id = call.parameters["id"]?.toLongOrNull() ?: return@put call.respondText(
+            text = "Invalid or Missing Product ID",
+            status = HttpStatusCode.BadRequest
+        )
+        val multipart = call.receiveMultipart()
+        var name: String? = null
+        var description: String? = null
+        var price: Long? = null
+        var imageUrl: String? = null
+        var categoryName: String? = null
+        var categoryId: Long? = null
+        var createdDate: String? = null
+        var updatedDate: String? = null
+        var totalStock: Long? = null
+        var brand: String? = null
+        var isAvailable: Boolean? = null
+        var discount: Long? = null
+        var promotion: String? = null
+        var productRating: Double? = null
+
+        multipart.forEachPart { partData ->
+            when (partData) {
+                is PartData.FileItem -> {
+                    val fileName = partData.originalFileName ?: "image_${System.currentTimeMillis()}"
+                    val file = File("/upload/products", fileName)
+                    partData.streamProvider().use { input ->
+                        file.outputStream().buffered().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    imageUrl = "/upload/products/$fileName"
+                }
+                is PartData.FormItem -> {
+                    when (partData.name) {
+                        "name" -> name = partData.value
+                        "description" -> description = partData.value
+                        "price" -> price = partData.value.toLongOrNull()
+                        "imageUrl" -> imageUrl = partData.value
+                        "categoryName" -> categoryName = partData.value
+                        "categoryId" -> categoryId = partData.value.toLongOrNull()
+                        "createdDate" -> createdDate = partData.value
+                        "updatedDate" -> updatedDate = partData.value
+                        "totalStock" -> totalStock = partData.value.toLongOrNull()
+                        "brand" -> brand = partData.value
+                        "isAvailable" -> isAvailable = partData.value.toBoolean()
+                        "discount" -> discount = partData.value.toLongOrNull()
+                        "promotion" -> promotion = partData.value
+                        "productRating" -> productRating = partData.value.toDoubleOrNull()
+                    }
+                }
+                else -> {
+                }
+            }
+            partData.dispose()
+        }
+
+        try {
+            val result = db.updateProductById(
+                id,
+                name ?: return@put call.respondText("Name Missing", status = HttpStatusCode.BadRequest),
+                description ?: return@put call.respondText("Description Missing", status = HttpStatusCode.BadRequest),
+                price ?: return@put call.respondText("Price Missing or Invalid", status = HttpStatusCode.BadRequest),
+                imageUrl ?: return@put call.respondText("Image URL Missing", status = HttpStatusCode.BadRequest),
+                categoryName ?: return@put call.respondText("Category Name Missing", status = HttpStatusCode.BadRequest),
+                categoryId ?: return@put call.respondText("Category ID Missing or Invalid", status = HttpStatusCode.BadRequest),
+                createdDate ?: return@put call.respondText("Created Date Missing", status = HttpStatusCode.BadRequest),
+                updatedDate ?: return@put call.respondText("Updated Date Missing", status = HttpStatusCode.BadRequest),
+                totalStock ?: return@put call.respondText("Total Stock Missing or Invalid", status = HttpStatusCode.BadRequest),
+                brand ?: return@put call.respondText("Brand Missing", status = HttpStatusCode.BadRequest),
+                isAvailable ?: false,
+                discount ?: return@put call.respondText("Discount Missing or Invalid", status = HttpStatusCode.BadRequest),
+                promotion ?: "",
+                productRating ?: 0.0
+            )
+
+            if (result != null && result > 0) {
+                call.respond(
+                    status = HttpStatusCode.OK,
+                    "Product Updated Successfully"
+                )
+            } else {
+                call.respond(
+                    status = HttpStatusCode.NotFound,
+                    "Product with ID $id not found"
+                )
+            }
+        } catch (e: Exception) {
+            call.respond(
+                status = HttpStatusCode.BadRequest,
+                "Error While Updating Product: ${e.message}"
+            )
+        }
+    }
+
 }

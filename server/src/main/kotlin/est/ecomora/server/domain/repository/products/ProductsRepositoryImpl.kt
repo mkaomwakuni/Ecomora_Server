@@ -2,6 +2,7 @@ package est.ecomora.server.domain.repository.products
 
 
 import est.ecomora.server.data.local.table.DatabaseFactory
+import est.ecomora.server.data.local.table.category.CategoriesTable
 import est.ecomora.server.data.local.table.products.ProductsTable
 import est.ecomora.server.data.repository.products.ProductDao
 import est.ecomora.server.domain.model.products.Product
@@ -122,13 +123,16 @@ class ProductsRepositoryImpl: ProductDao {
         return if (row==null) {
             null
         } else {
+            val categoryName = CategoriesTable.select { CategoriesTable.id eq row[ProductsTable.categoryId] }
+                .map { it[CategoriesTable.name] }
+                .singleOrNull()?: ""
             Product(
                 id = row[ProductsTable.id],
                 name = row[ProductsTable.name],
                 description = row[ProductsTable.description],
                 price = row[ProductsTable.price],
                 imageUrl = row[ProductsTable.imageUrl],
-                categoryName = row[ProductsTable.categoryName],
+                categoryName = categoryName,
                 categoryId = row[ProductsTable.categoryId],
                 createdDate = row[ProductsTable.createdDate],
                 updatedDate = row[ProductsTable.updatedDate],
