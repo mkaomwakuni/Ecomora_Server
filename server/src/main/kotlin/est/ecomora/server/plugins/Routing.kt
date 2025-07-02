@@ -4,14 +4,15 @@ package est.ecomora.server.plugins
 import est.ecomora.server.data.local.table.DatabaseFactory
 import est.ecomora.server.domain.repository.category.CategoriesRepositoryImpl
 import est.ecomora.server.domain.repository.products.ProductsRepositoryImpl
-import est.ecomora.server.domain.repository.users.UsersRepository
+import est.ecomora.server.domain.repository.users.UsersRepositoryImpl
 import io.ktor.server.application.Application
 import io.ktor.server.response.respondText
-import io.ktor.server.routing.*
+import io.ktor.server.routing.get
+import io.ktor.server.routing.routing
 
 fun Application.configureRouting() {
     DatabaseFactory.init()
-    val db = UsersRepository()
+    val db = UsersRepositoryImpl()
     val categoriesDb = CategoriesRepositoryImpl()
     val productsDb = ProductsRepositoryImpl()
     routing {

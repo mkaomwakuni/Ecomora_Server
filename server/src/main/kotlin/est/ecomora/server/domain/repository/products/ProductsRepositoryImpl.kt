@@ -13,6 +13,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.statements.InsertStatement
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 
 class ProductsRepositoryImpl: ProductDao {
@@ -33,27 +34,31 @@ class ProductsRepositoryImpl: ProductDao {
         productRating: Double,
         sold: Long
     ): Product? {
-      var arguments: InsertStatement<Number>? = null
-        DatabaseFactory.dbQuery {
-            arguments = ProductsTable.insert { item ->
-                item[ProductsTable.name] = name
-                item[ProductsTable.description] = description
-                item[ProductsTable.price] = price
-                item[ProductsTable.imageUrl] = imageUrl
-                item[ProductsTable.categoryName] = categoryName
-                item[ProductsTable.categoryId] = categoryId
-                item[ProductsTable.createdDate] = createdDate
-                item[ProductsTable.updatedDate] = updatedDate
-                item[ProductsTable.totalStock] = totalStock
-                item[ProductsTable.brand] = brand
-                item[ProductsTable.isAvailable] = isAvailable
-                item[ProductsTable.discount] = discount
-                item[ProductsTable.promotion] = promotion
-                item[ProductsTable.productRating] = productRating
-                item[ProductsTable.sold] = sold
-            }
+        return try {
+            transaction {
+                val arguments = ProductsTable.insert { item ->
+                        item[ProductsTable.name] = name
+                        item[ProductsTable.description] = description
+                        item[ProductsTable.price] = price
+                        item[ProductsTable.imageUrl] = imageUrl
+                        item[ProductsTable.categoryName] = categoryName
+                        item[ProductsTable.categoryId] = categoryId
+                        item[ProductsTable.createdDate] = createdDate
+                        item[ProductsTable.updatedDate] = updatedDate
+                        item[ProductsTable.totalStock] = totalStock
+                        item[ProductsTable.brand] = brand
+                        item[ProductsTable.isAvailable] = isAvailable
+                        item[ProductsTable.discount] = discount
+                        item[ProductsTable.promotion] = promotion
+                        item[ProductsTable.productRating] = productRating
+                        item[ProductsTable.sold] = sold
+                    }
+                    val firstResponse = arguments.resultedValues?.firstOrNull()!!
+                    rowToResponse(firstResponse)
+                }
+        } catch (e: Exception) {
+            null
         }
-        return rowToResponse(arguments?.resultedValues?.get(0)!!)
     }
 
     override suspend fun getAllProduct(): List<Product>? {

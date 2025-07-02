@@ -15,6 +15,6 @@ object UsersTable: Table("Users") {
     val fullName: Column<String> = varchar("fullname",80)
     val phoneNumber: Column<String> = varchar("phoneNumber", length = 130)
     val userRole: Column<String> = varchar("userRole", length = 51)
-
+    val userImage: Column<String> = varchar("profile", 150)
     override val primaryKey: PrimaryKey = PrimaryKey(id)
 }

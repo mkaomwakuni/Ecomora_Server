@@ -1,7 +1,6 @@
 package est.ecomora.server.data.local.table.products
 
 
-import est.ecomora.server.data.local.table.category.CategoriesTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
 

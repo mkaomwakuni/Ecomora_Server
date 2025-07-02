@@ -7,9 +7,14 @@ package est.ecomora.server.plugins
  * This import allows for creating, manipulating, and resolving file system paths
  * using the java.nio.file.Paths utility class.
  */
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
+import est.ecomora.server.data.local.table.users.UsersTable.phoneNumber
+import est.ecomora.server.data.local.table.users.UsersTable.userRole
+import est.ecomora.server.domain.model.users.Users
 import est.ecomora.server.domain.repository.category.CategoriesRepositoryImpl
 import est.ecomora.server.domain.repository.products.ProductsRepositoryImpl
-import est.ecomora.server.domain.repository.users.UsersRepository
+import est.ecomora.server.domain.repository.users.UsersRepositoryImpl
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
 import io.ktor.http.content.PartData
@@ -24,9 +29,12 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
+import io.netty.channel.unix.NativeInetAddress.address
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.Date
 
 /**
  * Handles user registration route for creating new users.
@@ -42,18 +50,19 @@ import java.nio.file.Paths
  * @throws HttpStatusCode.BadRequest if user creation fails
  */
 fun Route.users(
-    db: UsersRepository
+    db: UsersRepositoryImpl
 ) {
+
     post("v1/users") {
         val parameters = call.receive<Parameters>()
         val username = parameters["username"] ?: return@post call.respondText(
             text = " Username is Missing, Please provide a username",
-            status = io.ktor.http.HttpStatusCode.Unauthorized
+            status = HttpStatusCode.Unauthorized
         )
 
         val email = parameters["email"] ?: return@post call.respondText(
             text = " Email is Missing, Please provide an email",
-            status = io.ktor.http.HttpStatusCode.Unauthorized
+            status = HttpStatusCode.Unauthorized
         )
         val password = parameters["password"] ?: return@post call.respondText(
             text = " Password is Missing, Please provide a password",
@@ -74,13 +83,10 @@ fun Route.users(
 
         try {
             val users = db.insertUser(
-                username,
-                password,
-                email,
-                phoneNumber,
-                userRole)
-            users?.let {
-            call.respondText(
+                username, password, email, phoneNumber, userRole, "", fullName
+            )
+            users?.id.let {
+                call.respondText(
                     status = HttpStatusCode.OK,
                     text = "User Successfully Created"
                 )
@@ -92,7 +98,29 @@ fun Route.users(
             )
         }
     }
+    post("v1/login") {
+        val parameters = call.receive<Parameters>()
+        val email = parameters["email"] ?: return@post call.respondText(
+            text = "Email Missing",
+            status = HttpStatusCode.Unauthorized
+        )
+        val password = parameters["password"] ?: return@post call.respondText(
+            text = "Password Missing",
+            status = HttpStatusCode.Unauthorized
+        )
 
+        try {
+            val user = db.login(email, password)
+            if (user != null) {
+                val userJsonData = Json.encodeToString(Users.serializer(), user)
+                call.respond(HttpStatusCode.OK, "{\"message\":\"Login Successful\",\"user\":$userJsonData}")
+            } else {
+                call.respond(HttpStatusCode.Unauthorized, "Invalid Email or Password")
+            }
+        } catch (e: Exception) {
+            call.respond(HttpStatusCode.InternalServerError, "Error during login: ${e.message}")
+        }
+    }
     get("v1/users") {
         try {
             val users = db.getAllUsers()
@@ -183,9 +211,22 @@ fun Route.users(
             text = "password Missing",
             status = HttpStatusCode.BadRequest
         )
+
+        val fullName = parameters["fullName"] ?: return@put call.respondText(
+            text = "fullName Missing",
+            status = HttpStatusCode.BadRequest
+        )
+
+        val phoneNumber = parameters["phoneNumber"] ?: return@put call.respondText(
+            text = "fullName Missing",
+            status = HttpStatusCode.BadRequest
+        )
+
         try {
             val result = id.toLong().let { userId ->
-                db.updateUsers(userId, username, email, password)
+                db.updateUsers(
+                    userId, username, email, password, fullName ,  phoneNumber
+                )
             }
             if (result == 1) {
                 call.respondText(
@@ -481,15 +522,19 @@ fun Route.products(
         var discount: Long? = null
         var promotion: String? = null
         var productRating: Double? = null
+        val uploadsDirectory = File("uploads/products/")
+        if (uploadsDirectory.exists()) {
+            uploadsDirectory.mkdirs()
+        }
 
 
         threads.forEachPart { segmentsData ->
             when(segmentsData) {
                 is PartData.FileItem -> {
-                    val fileName = segmentsData.originalFileName?: "image${System.currentTimeMillis()}"
-                    val file = File("/upload/products", fileName)
+                    val fileName = segmentsData.originalFileName ?.replace("","")?: "Image${System.currentTimeMillis()}"
+                    val file = File(uploadsDirectory, fileName)
                     segmentsData.streamProvider().use {input ->
-                        file.outputStream().buffered().use {output ->
+                        file.outputStream().buffered().use { output ->
                             input.copyTo(output)
                         }
                     }
@@ -566,7 +611,29 @@ fun Route.products(
             )
         }
     }
+    get("v1/products/{id}") {
+        val id = call.parameters["id"] ?: return@get call.respondText(
+            text = "No ID Found...",
+            status = HttpStatusCode.BadRequest
+        )
+        try {
+            val products = db.getProductById(id.toLong())
+            if (products == null) {
+                call.respond(HttpStatusCode.BadRequest, "No Products Found")
+            } else {
+                call.respond(
+                    HttpStatusCode.OK,
+                    products
+                )
+            }
 
+        } catch (e: Exception) {
+            call.respond(
+                status = HttpStatusCode.BadRequest,
+                "Error While Fetching Products ${e.message}"
+            )
+        }
+    }
     delete("v1/products{id}") {
         val id = call.parameters["id"]?: return@delete call.respond(
             HttpStatusCode.BadRequest,
@@ -616,7 +683,7 @@ fun Route.products(
         multipart.forEachPart { partData ->
             when (partData) {
                 is PartData.FileItem -> {
-                    val fileName = partData.originalFileName ?: "image_${System.currentTimeMillis()}"
+                    val fileName = partData.originalFileName ?.replace("","")?: "Image${System.currentTimeMillis()}"
                     val file = File("/upload/products", fileName)
                     partData.streamProvider().use { input ->
                         file.outputStream().buffered().use { output ->
@@ -686,5 +753,4 @@ fun Route.products(
             )
         }
     }
-
 }

@@ -3,7 +3,7 @@ package est.ecomora.server.domain.model.users
 import kotlinx.serialization.Serializable
 
 /**
- * Represents a user in the CyberPros system.
+ * Represents a user in the Ecomora system.
  *
  * @property id Unique identifier for the user
  * @property username User's chosen username
