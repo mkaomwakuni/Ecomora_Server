@@ -8,7 +8,10 @@ import est.ecomora.server.plugins.configureSecurity
 import est.ecomora.server.plugins.configureSerialization
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
+import io.ktor.server.http.content.files
+import io.ktor.server.http.content.static
 import io.ktor.server.netty.Netty
+import io.ktor.server.routing.routing
 
 fun main() {
     embeddedServer(Netty, port = SERVER_PORT, host = host, module = Application::module)
@@ -22,4 +25,11 @@ fun Application.module() {
     configureMonitoring()
     configureDatabases()
     configureSecurity()
+    routing {
+        static("upload") {
+            static("products") {
+                files("E:\\KMP Projects\\store-server\\upload\\products")
+            }
+        }
+    }
 }
