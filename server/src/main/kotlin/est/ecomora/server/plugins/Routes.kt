@@ -11,10 +11,14 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import est.ecomora.server.data.local.table.users.UsersTable.phoneNumber
 import est.ecomora.server.data.local.table.users.UsersTable.userRole
+import est.ecomora.server.domain.model.login.LoginResponse
 import est.ecomora.server.domain.model.users.Users
 import est.ecomora.server.domain.repository.category.CategoriesRepositoryImpl
 import est.ecomora.server.domain.repository.products.ProductsRepositoryImpl
+import est.ecomora.server.domain.repository.promotions.PromotionsRepositoryImpl
+import est.ecomora.server.domain.repository.services.EservicesRepositoryImpl
 import est.ecomora.server.domain.repository.users.UsersRepositoryImpl
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
 import io.ktor.http.content.PartData
@@ -34,6 +38,7 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.text.SimpleDateFormat
 import java.util.Date
 
 /**
@@ -112,8 +117,9 @@ fun Route.users(
         try {
             val user = db.login(email, password)
             if (user != null) {
-                val userJsonData = Json.encodeToString(Users.serializer(), user)
-                call.respond(HttpStatusCode.OK, "{\"message\":\"Login Successful\",\"user\":$userJsonData}")
+                val loginResponse = LoginResponse("Login Successfully", user)
+                val userJsonData = Json{prettyPrint = true}.encodeToString(loginResponse)
+                call.respondText(userJsonData, ContentType.Application.Json)
             } else {
                 call.respond(HttpStatusCode.Unauthorized, "Invalid Email or Password")
             }
@@ -415,9 +421,7 @@ fun Route.category(
         )
 
         try {
-            val result = id.let { categoryId ->
-                db.updateCategory(categoryId, name, description, isVisible, imageUrl)
-            }
+            val result = db.updateCategory(id, name!!, description!!, isVisible!!, imageUrl!!)
             if (result == 1) {
                 call.respond(HttpStatusCode.OK, "Update Successfully $result")
             } else {
@@ -440,6 +444,10 @@ fun Route.category(
         var description: String? = null
         var isVisible: Boolean? = null
         var imageUrl: String? = null
+        val uploadDir = File("upload/products/categories")
+        if(uploadDir.exists()) {
+            uploadDir.mkdirs()
+        }
 
         threads.forEachPart { part->
             when(part) {
@@ -751,6 +759,197 @@ fun Route.products(
                 status = HttpStatusCode.BadRequest,
                 "Error While Updating Product: ${e.message}"
             )
+        }
+    }
+}
+
+fun Route.EServices(
+    db: EservicesRepositoryImpl
+) {
+    put("v1/services") {
+
+    }
+
+    get("v1/services{id}") {
+
+    }
+}
+
+fun Route.promotions(
+    db: PromotionsRepositoryImpl
+) {
+    post("v1/promotions") {
+        val multipart = call.receiveMultipart()
+        var title: String? = null
+        var description: String? = null
+        var imageUrl: String? = null
+        var startDate: Long? = null
+        var endDate: Long? = null
+        var enable: Boolean? = null
+        val uploadDir = File("upload/products/promotions")
+        if (!uploadDir.exists()){
+            uploadDir.mkdirs()
+        }
+        val dateFormat = SimpleDateFormat("MM/dd/yyyy")
+
+        multipart.forEachPart { partData ->
+            when (partData) {
+                is PartData.FileItem -> {
+                    val fileName = partData.originalFileName?.replace(" ","_") ?: "name/${System.currentTimeMillis()}"
+                    val file = File(uploadDir,fileName)
+                    partData.streamProvider().use { input->
+                        file.outputStream().use { output->
+                            input.copyTo(output)
+                        }
+                    }
+                    imageUrl = "/upload/products/promotions/$fileName"
+                }
+
+                is PartData.FormItem -> {
+                    when(partData.name){
+                        "title" -> title = partData.value
+                        "description" -> description = partData.value
+                        "startDate" ->startDate= partData.value?.let { dateFormat.parse(it)?.time }
+                        "endDate" -> endDate = partData.value?.let { dateFormat.parse(it)?.time }
+                        "enable" -> enable = partData.value.toBoolean()
+                    }
+                }
+                else -> {}
+            }
+        }
+        try {
+            val products = db.insertPromo(
+                title  = title ?: return@post call.respond(HttpStatusCode.BadRequest, "Title Missing"),
+                description = description ?: return@post call.respond(HttpStatusCode.BadRequest, "Description Missing"),
+                imageUrl = imageUrl ?: return@post call.respond(HttpStatusCode.BadRequest, "Image File Missing"),
+                startDate = startDate ?: return@post call.respond(HttpStatusCode.BadRequest, "Start Date Missing"),
+                endDate = endDate ?: return@post call.respond(HttpStatusCode.BadRequest,"End Date Missing"),
+                enabled = enable ?: return@post call.respond(HttpStatusCode.BadRequest,"Enabled Missing")
+            )
+            products.let {
+                call.respond(
+                    HttpStatusCode.Created,
+                    "Promotion Product Added Successfully... $products"
+                )
+            }
+
+        }catch (e: Exception){
+            call.respond(
+                status = HttpStatusCode.Unauthorized,
+                "Error While Uploading Promotions Products : ${e.message}"
+            )
+        }
+    }
+    delete("v1/promotions/{id}") {
+        val id = call.parameters["id"]?.toLongOrNull() ?: return@delete call.respond(HttpStatusCode.BadRequest, "Invalid ID")
+
+        try {
+            val deletedCount = db.deletePromotionById(id)
+            if (deletedCount > 0) {
+                call.respond(HttpStatusCode.OK, "Promotion with ID $id deleted successfully")
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Promotion with ID $id not found")
+            }
+        } catch (e: Exception) {
+            call.respond(HttpStatusCode.InternalServerError, "Failed to delete promotion: ${e.message}")
+        }
+    }
+    get("v1/promotions/{id}") {
+        val id = call.parameters["id"]?.toLongOrNull() ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid ID")
+
+        try {
+            val promotion = db.getPromotionById(id)
+            if (promotion != null) {
+                call.respond(HttpStatusCode.OK, promotion)
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Promotion with ID $id not found")
+            }
+        } catch (e: Exception) {
+            call.respond(HttpStatusCode.InternalServerError, "Failed to retrieve promotion: ${e.message}")
+        }
+    }
+    put ("v1/promotions/{id}"){
+        val id = call.parameters["id"] ?: return@put call.respond(
+            HttpStatusCode.BadRequest,
+            "Id Missing"
+        )
+        val multipart = call.receiveMultipart()
+        var title : String? = null
+        var description: String? = null
+        var imageUrl: String? = null
+        var startDate: Long? = null
+        var endDate: Long? = null
+        var enable: Boolean? = null
+        val uploadDir = File("upload/products/promotions")
+        if (!uploadDir.exists()){
+            uploadDir.mkdirs()
+        }
+        val dateFormat = SimpleDateFormat("MM/dd/yyyy")
+
+        multipart.forEachPart { partData ->
+            when (partData) {
+                is PartData.FileItem -> {
+                    val fileName = partData.originalFileName?.replace(" ","_") ?: "name/${System.currentTimeMillis()}"
+                    val file = File(uploadDir,fileName)
+                    partData.streamProvider().use { input->
+                        file.outputStream().use { output->
+                            input.copyTo(output)
+                        }
+                    }
+                    imageUrl = "/upload/products/promotions/$fileName"
+                }
+
+                is PartData.FormItem -> {
+                    when(partData.name){
+                        "title" -> title = partData.value
+                        "description" -> description = partData.value
+                        "startDate" ->startDate= partData.value?.let { dateFormat.parse(it)?.time }
+                        "endDate" -> endDate = partData.value?.let { dateFormat.parse(it)?.time }
+                        "enable" -> enable = partData.value.toBoolean()
+                    }
+                }
+                else ->{}
+            }
+        }
+        try {
+            val products = db.updatePromo(
+                id = id.toLong(),
+                title  = title ?: return@put call.respond(HttpStatusCode.BadRequest, "Title Missing"),
+                description = description ?: return@put call.respond(HttpStatusCode.BadRequest, "Description Missing"),
+                imageUrl = imageUrl ?: return@put call.respond(HttpStatusCode.BadRequest, "Image File Missing"),
+                startDate = startDate ?: return@put call.respond(HttpStatusCode.BadRequest, "Start Date Missing"),
+                endDate = endDate ?: return@put call.respond(HttpStatusCode.BadRequest,"End Date Missing"),
+                enabled = enable ?: return@put call.respond(HttpStatusCode.BadRequest,"Enabled Missing")
+            )
+            if (products != null) {
+                call.respond(
+                    status = HttpStatusCode.OK,
+                    "Product Updated Successfully"
+                )
+            } else {
+                call.respond(
+                    status = HttpStatusCode.NotFound,
+                    "Product with ID $id not found"
+                )
+            }
+
+        }catch (e: Exception){
+            call.respond(
+                status = HttpStatusCode.Unauthorized,
+                "Error While Uploading Promotions Products : ${e.message}"
+            )
+        }
+    }
+    get("v1/promotions") {
+        try {
+            val promotion = db.getAllPromotions()
+            if (promotion.isNullOrEmpty() ==true) {
+                call.respond(HttpStatusCode.NotFound, "No Promotion Items Available inside the Database.dd ")
+            } else {
+                call.respond(HttpStatusCode.OK, promotion)
+            }
+        } catch (e: Exception) {
+            call.respond(HttpStatusCode.InternalServerError, "Failed to retrieve promotion: ${e.message}")
         }
     }
 }
