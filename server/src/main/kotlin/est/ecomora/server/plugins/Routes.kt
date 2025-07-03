@@ -28,7 +28,9 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
+import io.ktor.server.routing.route
 import kotlinx.serialization.json.Json
+import org.h2.engine.User
 import java.io.File
 import java.text.SimpleDateFormat
 
@@ -553,6 +555,8 @@ fun Route.products(
         var brand: String? = null
         var isAvailable: Boolean? = null
         var discount: Long? = null
+        var color: String? = null
+        var isFeatured: Boolean? = null
         var promotion: String? = null
         var productRating: Double? = null
         val uploadsDirectory = File("uploads/products/")
@@ -565,7 +569,7 @@ fun Route.products(
             when(segmentsData) {
                 is PartData.FileItem -> {
                     val fileName = segmentsData.originalFileName ?.replace("","")?: "Image${System.currentTimeMillis()}"
-                    val file = File(uploadsDirectory, fileName)
+                    val file = File("uploads/products", fileName)
                     segmentsData.streamProvider().use {input ->
                         file.outputStream().buffered().use { output ->
                             input.copyTo(output)
@@ -589,6 +593,8 @@ fun Route.products(
                         "discount" -> discount = segmentsData.value.toLongOrNull()
                         "promotion" -> promotion = segmentsData.value
                         "productRating" -> productRating = segmentsData.value.toDoubleOrNull()
+                        "color" -> color = segmentsData.value
+                        "isFeatured" -> isFeatured = segmentsData.value.toBoolean()
                     }
                 }
                 else -> {
@@ -596,7 +602,7 @@ fun Route.products(
             }
         }
         try {
-            val product = db.insertProducts(
+            val product = db.insertProduct(
                 name ?: return@post call.respondText("Name Missing", status = HttpStatusCode.BadRequest),
                 description ?: return@post call.respondText("Description Missing", status = HttpStatusCode.BadRequest),
                 price ?: return@post call.respondText("Price Missing or Invalid", status = HttpStatusCode.BadRequest),
@@ -610,7 +616,9 @@ fun Route.products(
                 isAvailable ?: false,
                 discount ?: return@post call.respondText("Discount Missing or Invalid", status = HttpStatusCode.BadRequest),
                 promotion ?: "",
-                productRating ?: 0.0
+                productRating ?: 0.0,
+                color ?: return@post call.respondText("Color Missing", status = HttpStatusCode.BadRequest),
+                isFeatured ?: return@post call.respondText("Is Featured Missing", status = HttpStatusCode.BadRequest)
             )
             product?.id?.let {
                 call.respond(
@@ -713,6 +721,8 @@ fun Route.products(
         var discount: Long? = null
         var promotion: String? = null
         var productRating: Double? = null
+        var isFeatured: Boolean? = null
+        var color: String? = null
 
         multipart.forEachPart { partData ->
             when (partData) {
@@ -730,7 +740,7 @@ fun Route.products(
                     when (partData.name) {
                         "name" -> name = partData.value
                         "description" -> description = partData.value
-                        "price" -> price = partData.value.toLongOrNull()
+                        "price" -> price = partData.value.toLong()
                         "imageUrl" -> imageUrl = partData.value
                         "categoryName" -> categoryName = partData.value
                         "categoryId" -> categoryId = partData.value.toLongOrNull()
@@ -742,6 +752,8 @@ fun Route.products(
                         "discount" -> discount = partData.value.toLongOrNull()
                         "promotion" -> promotion = partData.value
                         "productRating" -> productRating = partData.value.toDoubleOrNull()
+                        "color" -> color = partData.value
+                        "isFeatured" -> isFeatured = partData.value.toBoolean()
                     }
                 }
                 else -> {
@@ -766,7 +778,9 @@ fun Route.products(
                 isAvailable ?: false,
                 discount ?: return@put call.respondText("Discount Missing or Invalid", status = HttpStatusCode.BadRequest),
                 promotion ?: "",
-                productRating ?: 0.0
+                productRating ?: 0.0,
+                color ?: return@put call.respondText("Color Missing", status = HttpStatusCode.BadRequest),
+                isFeatured ?: return@put call.respondText("Is Featured Missing", status = HttpStatusCode.BadRequest)
             )
 
             if (result != null && result > 0) {

@@ -4,6 +4,8 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import est.ecomora.server.data.local.table.category.CategoriesTable
 import est.ecomora.server.data.local.table.products.ProductsTable
+import est.ecomora.server.data.local.table.promotions.PromotionTable
+import est.ecomora.server.data.local.table.services.EservicesTable
 import est.ecomora.server.data.local.table.users.UsersTable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -29,7 +31,13 @@ object DatabaseFactory {
         transaction {
             Database.connect(hikariDataSource())
             transaction {
-                SchemaUtils.create(UsersTable, CategoriesTable, ProductsTable)
+                SchemaUtils.create(
+                    UsersTable,
+                    CategoriesTable,
+                    PromotionTable,
+                    EservicesTable,
+                    ProductsTable
+                )
             }
         }
     }
@@ -50,6 +58,10 @@ object DatabaseFactory {
 
         // Set the JDBC database URL from environment variables (e.g. jdbc:postgresql://localhost:5432/db)
         config.jdbcUrl = System.getenv("JDBC_DATABASE_URL")
+        
+        // Set database username and password from environment variables
+        config.username = System.getenv("DB_USERNAME") ?: "postgres"
+        config.password = System.getenv("DB_PASSWORD") ?: ""
 
         // Maximum number of connections in the pool
         config.maximumPoolSize = 3

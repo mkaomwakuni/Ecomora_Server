@@ -19,5 +19,7 @@ data class Product (
     val discount: Long,
     val promotion: String,
     val productRating: Double,
-    val sold: Long = 0
+    val sold: Long = 0,
+    val isFeatured: Boolean,
+    val color: String,
 )

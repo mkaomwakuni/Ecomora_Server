@@ -17,7 +17,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 
 class ProductsRepositoryImpl: ProductDao {
-    override suspend fun insertProducts(
+    override suspend fun insertProduct(
         name: String,
         description: String,
         price: Long,
@@ -32,7 +32,8 @@ class ProductsRepositoryImpl: ProductDao {
         discount: Long,
         promotion: String,
         productRating: Double,
-        sold: Long
+        color: String,
+        isFeatured: Boolean
     ): Product? {
         return try {
             transaction {
@@ -101,7 +102,8 @@ class ProductsRepositoryImpl: ProductDao {
         discount: Long,
         promotion: String,
         productRating: Double,
-        sold: Long
+        color: String,
+        isFeatured: Boolean
     ): Int? {
       return DatabaseFactory.dbQuery {
           ProductsTable.update({ ProductsTable.id.eq(id) }) {
@@ -147,7 +149,8 @@ class ProductsRepositoryImpl: ProductDao {
                 discount = row[ProductsTable.discount],
                 promotion = row[ProductsTable.promotion],
                 productRating = row[ProductsTable.productRating],
-                sold = row[ProductsTable.sold]
+                color = row[ProductsTable.color],
+                isFeatured = row[ProductsTable.isFeatured]
             )
         }
     }

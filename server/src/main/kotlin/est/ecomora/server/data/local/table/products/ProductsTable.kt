@@ -23,5 +23,9 @@ object ProductsTable: Table ("Products") {
     val productRating: Column<Double> = double("product_rating")
     val sold: Column<Long> = long("sold").default(0)
 
+    val isFeatured: Column<Boolean> = bool("isfeatured")
+
+    val color: Column<String> = varchar("color", length = 50)
+
     override val primaryKey: PrimaryKey? = PrimaryKey(id)
 }

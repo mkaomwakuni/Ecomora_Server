@@ -4,7 +4,7 @@ import est.ecomora.server.domain.model.products.Product
 
 
 interface ProductDao {
-    suspend fun insertProducts (
+    suspend fun insertProduct (
         name: String,
         description: String,
         price: Long,
@@ -19,7 +19,8 @@ interface ProductDao {
         discount: Long,
         promotion: String,
         productRating: Double,
-        sold: Long = 0
+        color: String,
+        isFeatured: Boolean
     ): Product?
 
     suspend fun getAllProduct(): List<Product>?
@@ -41,6 +42,7 @@ interface ProductDao {
         discount: Long,
         promotion: String,
         productRating: Double,
-        sold: Long = 0
+        color: String,
+        isFeatured: Boolean
     ): Int?
 }
