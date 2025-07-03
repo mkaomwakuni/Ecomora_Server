@@ -2,7 +2,9 @@ package est.ecomora.server.data.local.table
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import est.ecomora.server.data.local.table.cart.CartTable
 import est.ecomora.server.data.local.table.category.CategoriesTable
+import est.ecomora.server.data.local.table.prints.PrintsTable
 import est.ecomora.server.data.local.table.products.ProductsTable
 import est.ecomora.server.data.local.table.promotions.PromotionTable
 import est.ecomora.server.data.local.table.services.EservicesTable
@@ -36,7 +38,9 @@ object DatabaseFactory {
                     CategoriesTable,
                     PromotionTable,
                     EservicesTable,
-                    ProductsTable
+                    ProductsTable,
+                    PrintsTable,
+                    CartTable
                 )
             }
         }

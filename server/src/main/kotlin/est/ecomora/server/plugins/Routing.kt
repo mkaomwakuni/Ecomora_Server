@@ -2,6 +2,8 @@ package est.ecomora.server.plugins
 
 
 import est.ecomora.server.data.local.table.DatabaseFactory
+import est.ecomora.server.domain.model.prints.PrintsRepositoryImpl
+import est.ecomora.server.domain.repository.cart.CartRepositoryImpl
 import est.ecomora.server.domain.repository.category.CategoriesRepositoryImpl
 import est.ecomora.server.domain.repository.products.ProductsRepositoryImpl
 import est.ecomora.server.domain.repository.promotions.PromotionsRepositoryImpl
@@ -18,15 +20,19 @@ fun Application.configureRouting() {
     val categoriesDb = CategoriesRepositoryImpl()
     val productsDb = ProductsRepositoryImpl()
     val eservices = EservicesRepositoryImpl()
-    val promotionsCampaingns = PromotionsRepositoryImpl()
+    val printsDb = PrintsRepositoryImpl()
+    val promotionsCampaign = PromotionsRepositoryImpl()
+    val cartDb = CartRepositoryImpl()
     routing {
         get("/") {
             call.respondText("Hello Enterpreneur!")
         }
         users(db)
+        prints(printsDb)
         category(categoriesDb)
         products(productsDb)
-        promotions(promotionsCampaingns)
+        promotions(promotionsCampaign)
         services(eservices)
+        carts(cartDb)
     }
 }
