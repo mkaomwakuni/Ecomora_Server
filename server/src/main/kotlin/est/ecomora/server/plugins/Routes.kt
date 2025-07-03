@@ -7,12 +7,7 @@ package est.ecomora.server.plugins
  * This import allows for creating, manipulating, and resolving file system paths
  * using the java.nio.file.Paths utility class.
  */
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
-import est.ecomora.server.data.local.table.users.UsersTable.phoneNumber
-import est.ecomora.server.data.local.table.users.UsersTable.userRole
 import est.ecomora.server.domain.model.login.LoginResponse
-import est.ecomora.server.domain.model.users.Users
 import est.ecomora.server.domain.repository.category.CategoriesRepositoryImpl
 import est.ecomora.server.domain.repository.products.ProductsRepositoryImpl
 import est.ecomora.server.domain.repository.promotions.PromotionsRepositoryImpl
@@ -33,13 +28,9 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
-import io.netty.channel.unix.NativeInetAddress.address
 import kotlinx.serialization.json.Json
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.text.SimpleDateFormat
-import java.util.Date
 
 /**
  * Handles user registration route for creating new users.
@@ -259,48 +250,82 @@ fun Route.category(
     db: CategoriesRepositoryImpl
 ) {
     post("v1/categories") {
-        val parameters = call.receive<Parameters>()
-        val name = parameters["name"] ?: return@post call.respondText(
-            text = "Name is Missing",
-            status = HttpStatusCode.BadRequest
+        val multipart = call.receiveMultipart()
+        var name: String? = null
+        var description: String? = null
+        var isVisible: Boolean? = null
+        var imageUrl: String? = null
+        val uploadDir = File("upload/products/categories")
+        if (!uploadDir.exists()){
+            uploadDir.mkdirs()
+        }
+
+        multipart.forEachPart { part ->
+            when (part) {
+                is PartData.FormItem -> {
+                    when (part.name) {
+                        "name" -> name = part.value
+                        "description" -> description = part.value
+                        "isVisible" -> isVisible = part.value.toBoolean()
+                    }
+                }
+
+                is PartData.FileItem -> {
+                    val fileName = part.originalFileName?.replace(" ", "_") ?: "image${System.currentTimeMillis()}"
+                    val file = File(uploadDir, fileName)
+                    part.streamProvider().use { input ->
+                        file.outputStream().buffered().use { output ->
+                            input.copyTo(output)
+                        }
+
+                    }
+                    imageUrl = "/upload/products/categories/${fileName}"
+                }
+
+                else -> {}
+            }
+        }
+
+        name ?: return@post call.respond(
+            status = HttpStatusCode.BadRequest,
+            "Name Missing"
         )
-        val description = parameters["description"] ?: return@post call.respondText(
-            text = "Description Missing",
-            status = HttpStatusCode.BadRequest
+        description ?: return@post call.respond(
+            status = HttpStatusCode.BadRequest,
+            "Description Missing"
         )
-        val isVisible = parameters["isVisible"] ?: return@post call.respondText(
-            text = "isVisible Missing",
-            status = HttpStatusCode.BadRequest
+        isVisible ?: return@post call.respond(
+            status = HttpStatusCode.BadRequest,
+            "isVisible Missing"
         )
-        val imageUrl = parameters["imageUrl"] ?: return@post call.respondText(
-            text = "ImageUrl Missing",
-            status = HttpStatusCode.BadRequest
+        imageUrl ?: return@post call.respond(
+            status = HttpStatusCode.BadRequest,
+            "ImageUrl Missing"
         )
 
         try {
-            val category = db.insertCategory(
-                name, description, isVisible.toBoolean(), imageUrl
-            )
+            val category = db.insertCategory(name!!, description!!, isVisible!!, imageUrl!!)
             category?.id.let { categoryId ->
                 call.respond(
                     status = HttpStatusCode.OK,
-                    "Category Added - Success"
+                    "Category Uploaded Successfully to Server : $category"
                 )
             }
         } catch (e: Exception) {
             call.respond(
                 HttpStatusCode.Unauthorized,
-                "Error Inserting the Category"
+                "Error While Uploading Category To Server : ${e.message}"
             )
         }
     }
+
     get("v1/categories") {
         try {
             val category = db.getAllCategories()
             if (category?.isNotEmpty() == true) {
                 call.respond(
                     HttpStatusCode.OK,
-                    "No Users Found"
+                    category
                 )
             } else {
                 call.respond(
@@ -373,6 +398,10 @@ fun Route.category(
         var description: String? = null
         var isVisible: Boolean? = null
         var imageUrl: String? = null
+        val uploadDir = File("upload/products/categories")
+        if (!uploadDir.exists()){
+            uploadDir.mkdirs()
+        }
 
         multipart.forEachPart { part ->
             when (part) {
@@ -384,23 +413,19 @@ fun Route.category(
                     }
                 }
                 is PartData.FileItem -> {
-                    val fileBytes = part.streamProvider().readBytes()
-                    val fileName = part.originalFileName ?: "uploaded_image_${System.currentTimeMillis()}"
-                    val directoryPath = Paths.get("/var/www/uploads/") // Adjust the directory path as needed
+                    val fileName = part.originalFileName?.replace(" ", "_") ?: "image${System.currentTimeMillis()}"
+                    val file = File(uploadDir, fileName)
+                    part.streamProvider().use { input ->
+                        file.outputStream().buffered().use { output ->
+                            input.copyTo(output)
+                        }
 
-                    // Create the directory if it doesn't exist
-                    if (!Files.exists(directoryPath)) {
-                        Files.createDirectories(directoryPath)
                     }
-
-                    val filePath = "$directoryPath/$fileName"
-                    Files.write(Paths.get(filePath), fileBytes)
-                    imageUrl = "/uploads/categories/${fileName.replace(" ", "_")}"
+                    imageUrl = "/upload/products/categories/${fileName}"
                 }
-                is PartData.BinaryChannelItem -> TODO()
-                is PartData.BinaryItem -> TODO()
+
+                else -> {}
             }
-            part.dispose()
         }
 
         name ?: return@put call.respond(
@@ -460,15 +485,15 @@ fun Route.category(
                 }
 
                 is PartData.FileItem -> {
-                    val fileBytes = part.streamProvider().readBytes()
-                    val fileName = part.originalFileName ?: "uploaded_image_${System.currentTimeMillis()}"
-                    val directoryPath = Paths.get("/var/www/uploads/")
-                    if (!Files.exists(directoryPath)) {
-                        Files.createDirectories(directoryPath)
+                    val fileName = part.originalFileName?.replace(" ", "_") ?: "image${System.currentTimeMillis()}"
+                    val file = File(uploadDir, fileName)
+                    part.streamProvider().use { input ->
+                        file.outputStream().buffered().use { output ->
+                            input.copyTo(output)
+                        }
+
                     }
-                    val filePath = "$directoryPath/$fileName"
-                    Files.write(Paths.get(filePath), fileBytes)
-                    imageUrl = "/uploads/categories/${fileName.replace(" ", "_")}"
+                    imageUrl = "/upload/products/categories/${fileName}"
                 }
 
                 is PartData.BinaryChannelItem -> TODO()
@@ -642,7 +667,8 @@ fun Route.products(
             )
         }
     }
-    delete("v1/products{id}") {
+
+    delete("v1/products/{id}") {
         val id = call.parameters["id"]?: return@delete call.respond(
             HttpStatusCode.BadRequest,
             "Invalid Item ID"
@@ -763,18 +789,241 @@ fun Route.products(
     }
 }
 
-fun Route.EServices(
+fun Route.services(
     db: EservicesRepositoryImpl
 ) {
-    put("v1/services") {
+    post("v1/services") {
+        val threads = call.receiveMultipart()
+        var name: String? = null
+        var description: String? = null
+        var price: Long? = null
+        var imageUrl: String? = null
+        var category: String? = null
+        var createdAt: String? = null
+        var updatedAt: String? = null
+        var offered: Long? = 0
+        var isVisible: Boolean? = null
+        val uploadsDirectory = File("uploads/services/")
+        if (uploadsDirectory.exists()) {
+            uploadsDirectory.mkdirs()
+        }
 
+        threads.forEachPart { segmentsData ->
+            when(segmentsData) {
+                is PartData.FileItem -> {
+                    val fileName = segmentsData.originalFileName ?.replace("","")?: "Image${System.currentTimeMillis()}"
+                    val file = File(uploadsDirectory, fileName)
+                    segmentsData.streamProvider().use {input ->
+                        file.outputStream().buffered().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    imageUrl = "/upload/services/$fileName"
+                }
+                is PartData.FormItem -> {
+                    when (segmentsData.name) {
+                        "name" -> name = segmentsData.value
+                        "description" -> description = segmentsData.value
+                        "price" -> price = segmentsData.value.toLong()
+                        "imageUrl" -> imageUrl = segmentsData.value
+                        "category" -> category = segmentsData.value
+                        "createdAt" -> createdAt = segmentsData.value
+                        "updatedAt" -> updatedAt = segmentsData.value
+                        "offered" -> offered = segmentsData.value.toLongOrNull()
+                        "isVisible" -> isVisible = segmentsData.value.toBoolean()
+                    }
+                }
+                else -> {
+                }
+            }
+        }
+        try {
+            val service = db.insertService(
+                    name ?: return@post call.respondText("Name Missing", status = HttpStatusCode.BadRequest),
+                    description ?: return@post call.respondText("Description Missing", status = HttpStatusCode.BadRequest),
+                    price ?: return@post call.respondText("Price Missing or Invalid", status = HttpStatusCode.BadRequest),
+                offered ?: 0,
+                    category ?: return@post call.respondText("Category Missing", status = HttpStatusCode.BadRequest),
+                imageUrl ?: return@post call.respondText(
+                    "Image URL Missing",
+                    status = HttpStatusCode.BadRequest
+                ),
+                    isVisible ?: false,
+                    createdAt ?: return@post call.respondText("Created Date Missing", status = HttpStatusCode.BadRequest),
+                updatedAt ?: return@post call.respondText(
+                    "Updated Date Missing",
+                    status = HttpStatusCode.BadRequest
+                )
+            )
+            service?.id?.let {
+                call.respond(
+                    status = HttpStatusCode.Created,
+                    "Service Created Successfully: $service"
+                )
+            }
+        }catch (e: Exception){
+            call.respond(
+                status = HttpStatusCode.InternalServerError,
+                "Error While Creating Service: ${e.message}"
+            )
+        }
     }
+    get("v1/services") {
+        try {
+            val items = db.getAllServices()
+            if (items?.isNotEmpty()==true){
+                call.respond(HttpStatusCode.OK,
+                    items)
+            } else {
+                call.respond(
+                    HttpStatusCode.Unauthorized,
+                    "No Items We Found"
+                )
+            }
+        } catch (e: Exception) {
+            call.respond(
+                HttpStatusCode.BadRequest,
+                "Error Fetching Items ${e.message}"
+            )
+        }
+    }
+    get("v1/services/{id}") {
+        val id = call.parameters["id"] ?: return@get call.respondText(
+            text = "No ID Found...",
+            status = HttpStatusCode.BadRequest
+        )
+        try {
+            val products = db.getServiceById(id.toLong())
+            if (products == null) {
+                call.respond(HttpStatusCode.BadRequest, "No Services Found")
+            } else {
+                call.respond(
+                    HttpStatusCode.OK,
+                    products
+                )
+            }
 
-    get("v1/services{id}") {
+        } catch (e: Exception) {
+            call.respond(
+                status = HttpStatusCode.BadRequest,
+                "Error While Fetching Services ${e.message}"
+            )
+        }
+    }
+    delete("v1/services/{id}") {
+        val id = call.parameters["id"]?: return@delete call.respond(
+            HttpStatusCode.BadRequest,
+            "Invalid Item ID"
+        )
+        try {
+            val items = db.deleteServiceById(id.toLong())
+            if (items == null) {
+                call.respond(
+                    HttpStatusCode.OK,
+                    "Item Deleted - Success"
+                )
+            } else {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Item Not Found - Failure"
+                )
+            }
+        } catch (e: Exception) {
+            call.respond(
+                HttpStatusCode.BadRequest,
+                "Error Deleting Items ${e.message}"
+            )
+        }
+    }
+    put("v1/services/{id}") {
+        val id = call.parameters["id"]?.toLongOrNull() ?: return@put call.respondText(
+            text = "Invalid or Missing Service ID",
+            status = HttpStatusCode.BadRequest
+        )
+        val multipart = call.receiveMultipart()
+        var name: String? = null
+        var description: String? = null
+        var price: Long? = null
+        var imageUrl: String? = null
+        var category: String? = null
+        var createdAt: String? = null
+        var updatedDate: String? = null
+        var offered: Long? = 0
+        var isVisible: Boolean? = null
 
+        multipart.forEachPart { partData ->
+            when (partData) {
+                is PartData.FileItem -> {
+                    val fileName = partData.originalFileName ?.replace("","")?: "Image${System.currentTimeMillis()}"
+                    val file = File("/upload/services", fileName)
+                    partData.streamProvider().use { input ->
+                        file.outputStream().buffered().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    imageUrl = "/upload/services/$fileName"
+                }
+                is PartData.FormItem -> {
+                    when (partData.name) {
+                        "name" -> name = partData.value
+                        "description" -> description = partData.value
+                        "price" -> price = partData.value.toLongOrNull()
+                        "imageUrl" -> imageUrl = partData.value
+                        "category" -> category = partData.value
+                        "createdAt" -> createdAt = partData.value
+                        "updatedAt" -> updatedDate = partData.value
+                        "offered" -> offered = partData.value.toLongOrNull()
+                        "isVisible" -> isVisible = partData.value.toBoolean()
+                    }
+                }
+                else -> {
+                }
+            }
+            partData.dispose()
+        }
+
+        try {
+            val result = db.updateService(
+                id,
+                name ?: return@put call.respondText("Name Missing", status = HttpStatusCode.BadRequest),
+                description ?: return@put call.respondText("Description Missing", status = HttpStatusCode.BadRequest),
+                price ?: return@put call.respondText("Price Missing or Invalid", status = HttpStatusCode.BadRequest),
+                offered ?: 0,
+                category ?: return@put call.respondText(
+                    "Category Missing",
+                    status = HttpStatusCode.BadRequest
+                ),
+                imageUrl ?: return@put call.respondText("Image URL Missing", status = HttpStatusCode.BadRequest),
+                isVisible ?: false,
+                createdAt ?: return@put call.respondText(
+                    "Created Date Missing",
+                    status = HttpStatusCode.BadRequest
+                ),
+                updatedDate ?: return@put call.respondText(
+                    "Updated Date Missing",
+                    status = HttpStatusCode.BadRequest
+                )
+            )
+
+            if (result != null && result > 0) {
+                call.respond(
+                    status = HttpStatusCode.OK,
+                    "Service Updated Successfully"
+                )
+            } else {
+                call.respond(
+                    status = HttpStatusCode.NotFound,
+                    "Service with ID $id not found"
+                )
+            }
+        } catch (e: Exception) {
+            call.respond(
+                status = HttpStatusCode.BadRequest,
+                "Error While Updating Service: ${e.message}"
+            )
+        }
     }
 }
-
 fun Route.promotions(
     db: PromotionsRepositoryImpl
 ) {
@@ -845,7 +1094,7 @@ fun Route.promotions(
 
         try {
             val deletedCount = db.deletePromotionById(id)
-            if (deletedCount > 0) {
+            if (deletedCount != null && deletedCount > 0) {
                 call.respond(HttpStatusCode.OK, "Promotion with ID $id deleted successfully")
             } else {
                 call.respond(HttpStatusCode.NotFound, "Promotion with ID $id not found")
@@ -912,7 +1161,7 @@ fun Route.promotions(
             }
         }
         try {
-            val products = db.updatePromo(
+            val services = db.updatePromo(
                 id = id.toLong(),
                 title  = title ?: return@put call.respond(HttpStatusCode.BadRequest, "Title Missing"),
                 description = description ?: return@put call.respond(HttpStatusCode.BadRequest, "Description Missing"),
@@ -921,7 +1170,7 @@ fun Route.promotions(
                 endDate = endDate ?: return@put call.respond(HttpStatusCode.BadRequest,"End Date Missing"),
                 enabled = enable ?: return@put call.respond(HttpStatusCode.BadRequest,"Enabled Missing")
             )
-            if (products != null) {
+            if (services != null) {
                 call.respond(
                     status = HttpStatusCode.OK,
                     "Product Updated Successfully"
@@ -942,11 +1191,14 @@ fun Route.promotions(
     }
     get("v1/promotions") {
         try {
-            val promotion = db.getAllPromotions()
-            if (promotion.isNullOrEmpty() ==true) {
-                call.respond(HttpStatusCode.NotFound, "No Promotion Items Available inside the Database.dd ")
+            val promotions = db.getAllPromotions()
+            if (promotions.isNullOrEmpty() == true ) {
+                call.respond(
+                    HttpStatusCode.NotFound,
+                    "No Promotion Items Available inside the Database."
+                )
             } else {
-                call.respond(HttpStatusCode.OK, promotion)
+                call.respond(HttpStatusCode.OK, promotions)
             }
         } catch (e: Exception) {
             call.respond(HttpStatusCode.InternalServerError, "Failed to retrieve promotion: ${e.message}")
