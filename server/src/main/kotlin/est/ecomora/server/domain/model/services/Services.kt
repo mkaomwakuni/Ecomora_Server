@@ -3,14 +3,15 @@ package est.ecomora.server.domain.model.services
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Services (
-    val id: String,
+data class EServices  (
+    val id: Long,
     val name: String,
     val description: String,
-    val price: Double,
-    val category: String,
-    val isActive: Boolean = true,
+    val isVisible: Boolean,
+    val imageUrl: String,
+    val offered: Long = 0,
     val createdAt: String,
     val updatedAt: String,
-    val offered: Int
+    val price: Long,
+    val category: String,
 )
