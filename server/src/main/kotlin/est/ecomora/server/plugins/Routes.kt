@@ -8,6 +8,8 @@ package est.ecomora.server.plugins
  * using the java.nio.file.Paths utility class.
  */
 import est.ecomora.server.domain.model.login.LoginResponse
+import est.ecomora.server.domain.model.prints.PrintsRepositoryImpl
+import est.ecomora.server.domain.repository.cart.CartRepositoryImpl
 import est.ecomora.server.domain.repository.category.CategoriesRepositoryImpl
 import est.ecomora.server.domain.repository.products.ProductsRepositoryImpl
 import est.ecomora.server.domain.repository.promotions.PromotionsRepositoryImpl
@@ -633,6 +635,30 @@ fun Route.products(
             )
         }
     }
+
+    get("v1/products/userId/{ids}") {
+        val idsString = call.parameters["ids"]
+        val ids = idsString?.removeSurrounding("[", "]")?.split(",")?.mapNotNull { it.toLongOrNull() }
+        if (ids.isNullOrEmpty()) {
+            call.respond(HttpStatusCode.BadRequest, "Invalid IDs provided.")
+            return@get
+        }
+
+        try {
+            val products = db.getProductsByIds(ids)
+            if (products?.isNotEmpty() == true) {
+                call.respond(HttpStatusCode.OK, products)
+            } else {
+                call.respond(HttpStatusCode.NotFound, "No products found with the provided IDs.")
+            }
+        } catch (e: Exception) {
+            call.respond(
+                status = HttpStatusCode.InternalServerError,
+                "Error while fetching products: ${e.message}"
+            )
+        }
+    }
+
     get("v1/products") {
         try {
             val items = db.getAllProduct()
@@ -1219,3 +1245,395 @@ fun Route.promotions(
         }
     }
 }
+
+
+fun Route.prints(
+    db: PrintsRepositoryImpl
+) {
+    post("v1/prints") {
+        val multipart = call.receiveMultipart()
+        var name: String? = null
+        var description: String? = null
+        var price: Double? = null
+        var imageUrl: String? = null
+        var copies: Int? = null
+        val uploadDir = File("upload/products/prints/")
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs()
+        }
+
+        multipart.forEachPart { partData ->
+            when (partData) {
+                is PartData.FileItem -> {
+                    val fileName = partData.originalFileName?.replace(" ", "_") ?: "image${System.currentTimeMillis()}"
+                    val file = File(uploadDir, fileName)
+                    partData.streamProvider().use { input ->
+                        file.outputStream().buffered().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    imageUrl = "/upload/products/prints/$fileName"
+                }
+                is PartData.FormItem -> {
+                    when (partData.name) {
+                        "name" -> name = partData.value
+                        "description" -> description = partData.value
+                        "price" -> price = partData.value.toDoubleOrNull()
+                        "copies" -> copies = partData.value.toIntOrNull()
+                    }
+                }
+                else -> {}
+            }
+            partData.dispose()
+        }
+
+        try {
+            val print = db.insertPrint(
+                name ?: return@post call.respondText("Name Missing", status = HttpStatusCode.BadRequest),
+                description ?: return@post call.respondText("Description Missing", status = HttpStatusCode.BadRequest),
+                price ?: return@post call.respondText("Price Missing or Invalid", status = HttpStatusCode.BadRequest),
+                imageUrl ?: return@post call.respondText("Image URL Missing", status = HttpStatusCode.BadRequest),
+                copies ?: return@post call.respondText("Copies Missing or Invalid", status = HttpStatusCode.BadRequest)
+            )
+            print?.id?.let {
+                call.respond(
+                    status = HttpStatusCode.Created,
+                    "Print Created Successfully: $print"
+                )
+            }
+        } catch (e: Exception) {
+            call.respond(
+                status = HttpStatusCode.InternalServerError,
+                "Error While Creating Print: ${e.message}"
+            )
+        }
+    }
+
+    put("v1/prints/{id}") {
+        val id = call.parameters["id"]?.toLongOrNull() ?: return@put call.respond(HttpStatusCode.BadRequest, "Invalid ID")
+        val multipart = call.receiveMultipart()
+        var name: String? = null
+        var description: String? = null
+        var price: Double? = null
+        var imageUrl: String? = null
+        var copies: Int? = null
+        val uploadDir = File("upload/products/prints")
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs()
+        }
+
+        multipart.forEachPart { partData ->
+            when (partData) {
+                is PartData.FormItem -> {
+                    when (partData.name) {
+                        "name" -> name = partData.value
+                        "description" -> description = partData.value
+                        "price" -> price = partData.value.toDoubleOrNull()
+                        "copies" -> copies = partData.value.toIntOrNull()
+                    }
+                }
+                is PartData.FileItem -> {
+                    val fileName = partData.originalFileName?.replace(" ", "_") ?: "image${System.currentTimeMillis()}"
+                    val file = File(uploadDir, fileName)
+                    partData.streamProvider().use { input ->
+                        file.outputStream().buffered().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    imageUrl = "/upload/products/promotions/${fileName}"
+                }
+                else -> {}
+            }
+            partData.dispose()
+        }
+
+        try {
+            val updatedCount = db.updatePrint(
+                id = id,
+                name = name ?: return@put call.respond(HttpStatusCode.BadRequest, "Name is required"),
+                description = description ?: return@put call.respond(HttpStatusCode.BadRequest, "Description is required"),
+                price = price ?: return@put call.respond(HttpStatusCode.BadRequest, "Price is required"),
+                imageUrl = imageUrl ?: return@put call.respond(HttpStatusCode.BadRequest, "Image URL is required"),
+                copies = copies ?: return@put call.respond(HttpStatusCode.BadRequest, "Copies is required")
+            )
+            if (updatedCount != null && updatedCount > 0) {
+                call.respond(HttpStatusCode.OK, "Print with ID $id updated successfully")
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Print with ID $id not found")
+            }
+        } catch (e: Exception) {
+            call.respond(HttpStatusCode.InternalServerError, "Failed to update print: ${e.message}")
+        }
+    }
+
+    get("v1/prints/{id}") {
+        val id = call.parameters["id"]?.toLongOrNull() ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid ID")
+        try {
+            val print = db.getPrintById(id)
+            if (print != null) {
+                call.respond(HttpStatusCode.OK, print)
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Print with ID $id not found")
+            }
+        } catch (e: Exception) {
+            call.respond(HttpStatusCode.InternalServerError, "Failed to retrieve print: ${e.message}")
+        }
+    }
+
+    get("v1/prints") {
+        try {
+            val prints = db.getAllPrints()
+            if (prints.isNullOrEmpty()) {
+                call.respond(HttpStatusCode.NotFound, "No prints found")
+            } else {
+                call.respond(HttpStatusCode.OK, prints)
+            }
+        } catch (e: Exception) {
+            call.respond(HttpStatusCode.InternalServerError, "Failed to retrieve prints: ${e.message}")
+        }
+    }
+}
+
+fun Route.carts(
+    db: CartRepositoryImpl,
+) {
+    post("v1/cart") {
+        val parameters = call.receive<Parameters>()
+        val productId = parameters["productId"]?.toLongOrNull()
+            ?: return@post call.respondText(
+                text = "Product ID Missing",
+                status = HttpStatusCode.BadRequest
+            )
+        val quantity = parameters["quantity"]?.toIntOrNull()
+            ?: return@post call.respondText(
+                text = "Quantity Missing or Invalid",
+                status = HttpStatusCode.BadRequest
+            )
+        val userId = parameters["userId"]?.toLongOrNull()
+            ?: return@post call.respondText(
+                text = "User ID Missing or Invalid",
+                status = HttpStatusCode.BadRequest
+            )
+        try {
+            val cartItem = db.insertCartItem(productId, userId, quantity)
+            cartItem.let {
+                call.respond(
+                    status = HttpStatusCode.OK,
+                    cartItem ?: "Error while adding item to cart"
+                )
+            }
+        } catch (e: Exception) {
+            call.respond(
+                status = HttpStatusCode.InternalServerError,
+                "Error While Adding Item to Cart: ${e.message}"
+            )
+        }
+    }
+
+    get("v1/cart") {
+        try {
+            val cartItems = db.getAllCart()
+            if (cartItems != null) {
+                call.respond(HttpStatusCode.OK, cartItems)
+            } else {
+                call.respond(
+                    status = HttpStatusCode.NotFound,
+                    "Cart Items Not Found for User ID: $cartItems"
+                )
+            }
+        } catch (e: Exception) {
+            call.respond(
+                status = HttpStatusCode.InternalServerError,
+                "Error While Fetching Cart Items: ${e.message}"
+            )
+        }
+    }
+    get("v1/cart/user/{userId}") {
+        val userId = call.parameters["userId"]?.toLongOrNull()
+            ?: return@get call.respondText(
+                text = "User ID Missing or Invalid",
+                status = HttpStatusCode.BadRequest
+            )
+        try {
+            val cartItems = db.getCartByUserId(userId)
+            if (cartItems != null) {
+                call.respond(HttpStatusCode.OK, cartItems)
+            } else {
+                call.respond(
+                    status = HttpStatusCode.NotFound,
+                    "Cart Items Not Found for User ID: $userId"
+                )
+            }
+        } catch (e: Exception) {
+            call.respond(
+                status = HttpStatusCode.InternalServerError,
+                "Error While Fetching Cart Items: ${e.message}"
+            )
+        }
+    }
+    get("v1/cart/{userId}") {
+        val userId = call.parameters["userId"]?.toLongOrNull()
+            ?: return@get call.respondText(
+                text = "User ID Missing or Invalid",
+                status = HttpStatusCode.BadRequest
+            )
+        try {
+            val cartItems = db.getCartItemByUserId(userId)
+            if (cartItems != null) {
+                call.respond(HttpStatusCode.OK, cartItems)
+            } else {
+                call.respond(
+                    status = HttpStatusCode.NotFound,
+                    "Cart Items Not Found for User ID: $userId"
+                )
+            }
+        } catch (e: Exception) {
+            call.respond(
+                status = HttpStatusCode.InternalServerError,
+                "Error While Fetching Cart Items: ${e.message}"
+            )
+        }
+    }
+
+    delete("v1/cart/{userId}") {
+        val userId = call.parameters["userId"]?.toLongOrNull()
+            ?: return@delete call.respondText(
+                text = "User ID Missing or Invalid",
+                status = HttpStatusCode.BadRequest
+            )
+        try {
+            val deletedItemsCount = db.deleteCartItemByUserId(userId)
+            call.respond(
+                status = HttpStatusCode.OK,
+                "Deleted $deletedItemsCount items from cart for user ID: $userId"
+            )
+        } catch (e: Exception) {
+            call.respond(
+                status = HttpStatusCode.InternalServerError,
+                "Error While Deleting Cart Items: ${e.message}"
+            )
+        }
+    }
+
+    put("v1/cart/{userId}") {
+        val userId = call.parameters["userId"]?.toLongOrNull()
+            ?: return@put call.respondText(
+                text = "User ID Missing or Invalid",
+                status = HttpStatusCode.BadRequest
+            )
+
+        val parameters = call.receive<Parameters>()
+        val cartId = parameters["cartId"]?.toIntOrNull()
+            ?: return@put call.respondText(
+                text = "cart ID Missing or Invalid",
+                status = HttpStatusCode.BadRequest
+            )
+        val productId = parameters["productId"]?.toLongOrNull()
+            ?: return@put call.respondText(
+                text = "Product ID Missing or Invalid",
+                status = HttpStatusCode.BadRequest
+            )
+        val quantity = parameters["quantity"]?.toIntOrNull()
+            ?: return@put call.respondText(
+                text = "Quantity Missing or Invalid",
+                status = HttpStatusCode.BadRequest
+            )
+
+
+        try {
+            db.updateCart(cartId, productId, userId, quantity)
+            call.respond(HttpStatusCode.OK, "Cart item updated successfully")
+        } catch (e: Exception) {
+            call.respond(
+                status = HttpStatusCode.InternalServerError,
+                "Error While Updating Cart Item: ${e.message}"
+            )
+        }
+    }
+    get("v1/cart/{cartId}") {
+        val cartId = call.parameters["cartId"]?.toIntOrNull()
+            ?: return@get call.respondText(
+                text = "Cart ID Missing or Invalid",
+                status = HttpStatusCode.BadRequest
+            )
+        try {
+            val cartItem = db.getCartItemByCartId(cartId)
+            if (cartItem != null) {
+                call.respond(HttpStatusCode.OK, cartItem)
+            } else {
+                call.respond(
+                    status = HttpStatusCode.NotFound,
+                    "Cart Item Not Found for Cart ID: $cartId"
+                )
+            }
+        } catch (e: Exception) {
+            call.respond(
+                status = HttpStatusCode.InternalServerError,
+                "Error While Fetching Cart Item: ${e.message}"
+            )
+        }
+    }
+
+    delete("v1/cart/item/{cartId}") {
+        val cartId = call.parameters["cartId"]?.toIntOrNull()
+            ?: return@delete call.respondText(
+                text = "Cart ID Missing or Invalid",
+                status = HttpStatusCode.BadRequest
+            )
+        try {
+            val deletedItemsCount = db.deleteCartItemByCartId(cartId)
+            if (deletedItemsCount == 1) {
+                call.respond(
+                    status = HttpStatusCode.OK,
+                    "Deleted $deletedItemsCount items from cart with ID: $cartId"
+                )
+            } else {
+                call.respond(
+                    status = HttpStatusCode.NotFound,
+                    "Cart Item Not Found for Cart ID: $cartId"
+                )
+            }
+        } catch (e: Exception) {
+            call.respond(
+                status = HttpStatusCode.InternalServerError,
+                "Error While Deleting Cart Item: ${e.message}"
+            )
+        }
+    }
+
+    put("v1/cart/item/{cartId}") {
+        val cartId = call.parameters["cartId"]?.toIntOrNull()
+            ?: return@put call.respondText(
+                text = "Cart ID Missing or Invalid",
+                status = HttpStatusCode.BadRequest
+            )
+
+        val parameters = call.receive<Parameters>()
+        val productId = parameters["productId"]?.toLongOrNull()
+            ?: return@put call.respondText(
+                text = "Product ID Missing or Invalid",
+                status = HttpStatusCode.BadRequest
+            )
+        val quantity = parameters["quantity"]?.toIntOrNull()
+            ?: return@put call.respondText(
+                text = "Quantity Missing or Invalid",
+                status = HttpStatusCode.BadRequest
+            )
+        val userId = parameters["userId"]?.toIntOrNull()
+            ?: return@put call.respondText(
+                text = "userId Missing or Invalid",
+                status = HttpStatusCode.BadRequest
+            )
+
+        try {
+            db.updateCartItem(cartId, productId, userId.toLong(),quantity)
+            call.respond(HttpStatusCode.OK, "Cart item updated successfully")
+        } catch (e: Exception) {
+            call.respond(
+                status = HttpStatusCode.InternalServerError,
+                "Error While Updating Cart Item: ${e.message}"
+            )
+        }
+    }
+}
+
