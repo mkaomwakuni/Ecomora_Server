@@ -71,6 +71,15 @@ class ProductsRepositoryImpl: ProductDao {
         }
     }
 
+    override suspend fun getProductsByIds(ids: List<Long>): List<Product>? {
+        return DatabaseFactory.dbQuery {
+            ProductsTable.select { ProductsTable.id.inList(ids) }
+                .mapNotNull {
+                    rowToResponse(it)
+                }
+        }
+    }
+
     override suspend fun getProductById(id: Long): Product? {
         return DatabaseFactory.dbQuery {
             ProductsTable.select { ProductsTable.id.eq(id) }

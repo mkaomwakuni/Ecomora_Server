@@ -17,5 +17,5 @@ object UsersTable: Table("Users") {
     val userRole: Column<String> = varchar("userRole", length = 50)
     val userImage: Column<String> = varchar("profile", 150)
 
-    override val primaryKey: PrimaryKey = PrimaryKey(id)
+    override val primaryKey = PrimaryKey(id)
 }

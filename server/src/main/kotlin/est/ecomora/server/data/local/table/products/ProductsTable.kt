@@ -27,5 +27,5 @@ object ProductsTable: Table ("Products") {
 
     val color: Column<String> = varchar("color", length = 50)
 
-    override val primaryKey: PrimaryKey? = PrimaryKey(id)
+    override val primaryKey = PrimaryKey(id)
 }

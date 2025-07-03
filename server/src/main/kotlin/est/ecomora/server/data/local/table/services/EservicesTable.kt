@@ -14,5 +14,5 @@ object EservicesTable: Table("Services") {
     val createdAt = varchar("createdAt", 255)
     val updatedAt = varchar("updatedAt",255)
 
-    override val primaryKey: PrimaryKey = PrimaryKey(id)
+    override val primaryKey = PrimaryKey(id)
 }

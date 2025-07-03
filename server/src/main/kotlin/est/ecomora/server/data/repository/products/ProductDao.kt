@@ -24,6 +24,7 @@ interface ProductDao {
     ): Product?
 
     suspend fun getAllProduct(): List<Product>?
+    suspend fun getProductsByIds(ids: List<Long>): List<Product>?
     suspend fun getProductById(id: Long): Product?
     suspend fun deleteProductById(id: Long): Int?
     suspend fun updateProductById(
