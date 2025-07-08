@@ -32,6 +32,11 @@ services:
         value: /opt/render/project/src/uploads
       - key: UPLOAD_DIR
         value: /opt/render/project/src/uploads
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: ecomora-redis
+          property: connectionString
 
   # Redis service for caching
   - type: redis
