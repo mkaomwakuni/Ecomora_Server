@@ -33,30 +33,33 @@ class ProductsRepositoryImpl: ProductDao {
         promotion: String,
         productRating: Double,
         color: String,
+        sold: Long,
         isFeatured: Boolean
     ): Product? {
         return try {
             transaction {
                 val arguments = ProductsTable.insert { item ->
-                        item[ProductsTable.name] = name
-                        item[ProductsTable.description] = description
-                        item[ProductsTable.price] = price
-                        item[ProductsTable.imageUrl] = imageUrl
-                        item[ProductsTable.categoryName] = categoryName
-                        item[ProductsTable.categoryId] = categoryId
-                        item[ProductsTable.createdDate] = createdDate
-                        item[ProductsTable.updatedDate] = updatedDate
-                        item[ProductsTable.totalStock] = totalStock
-                        item[ProductsTable.brand] = brand
-                        item[ProductsTable.isAvailable] = isAvailable
-                        item[ProductsTable.discount] = discount
-                        item[ProductsTable.promotion] = promotion
-                        item[ProductsTable.productRating] = productRating
-                        item[ProductsTable.sold] = sold
-                    }
-                    val firstResponse = arguments.resultedValues?.firstOrNull()!!
-                    rowToResponse(firstResponse)
+                    item[ProductsTable.name] = name
+                    item[ProductsTable.description] = description
+                    item[ProductsTable.price] = price
+                    item[ProductsTable.imageUrl] = imageUrl
+                    item[ProductsTable.categoryName] = categoryName
+                    item[ProductsTable.categoryId] = categoryId
+                    item[ProductsTable.createdDate] = createdDate
+                    item[ProductsTable.updatedDate] = updatedDate
+                    item[ProductsTable.totalStock] = totalStock
+                    item[ProductsTable.brand] = brand
+                    item[ProductsTable.isAvailable] = isAvailable
+                    item[ProductsTable.discount] = discount
+                    item[ProductsTable.promotion] = promotion
+                    item[ProductsTable.productRating] = productRating
+                    item[ProductsTable.color] = color
+                    item[ProductsTable.sold] = sold
+                    item[ProductsTable.isFeatured] = isFeatured
                 }
+                val firstResponse = arguments.resultedValues?.firstOrNull()!!
+                rowToResponse(firstResponse)
+            }
         } catch (e: Exception) {
             null
         }
@@ -95,6 +98,15 @@ class ProductsRepositoryImpl: ProductDao {
         }
     }
 
+    override suspend fun getProductsByMultipleIds(ids: List<Long>): List<Product>? {
+       return DatabaseFactory.dbQuery {
+           ProductsTable.select { ProductsTable.id.inList(ids) }
+               .mapNotNull {
+                   rowToResponse(it)
+               }
+       }
+    }
+
     override suspend fun updateProductById(
         id: Long,
         name: String,
@@ -109,6 +121,7 @@ class ProductsRepositoryImpl: ProductDao {
         brand: String,
         isAvailable: Boolean,
         discount: Long,
+        sold: Long,
         promotion: String,
         productRating: Double,
         color: String,
@@ -130,10 +143,14 @@ class ProductsRepositoryImpl: ProductDao {
               it[ProductsTable.discount] = discount
               it[ProductsTable.promotion] = promotion
               it[ProductsTable.productRating] = productRating
+              it[ProductsTable.color] = color
               it[ProductsTable.sold] = sold
+              it[ProductsTable.isFeatured] = isFeatured
           }
       }
     }
+
+
 
     private fun rowToResponse(row: ResultRow): Product? {
         return if (row==null) {
@@ -158,6 +175,7 @@ class ProductsRepositoryImpl: ProductDao {
                 discount = row[ProductsTable.discount],
                 promotion = row[ProductsTable.promotion],
                 productRating = row[ProductsTable.productRating],
+                sold = row[ProductsTable.sold],
                 color = row[ProductsTable.color],
                 isFeatured = row[ProductsTable.isFeatured]
             )

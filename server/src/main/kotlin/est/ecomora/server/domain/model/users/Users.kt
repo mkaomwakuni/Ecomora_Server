@@ -18,5 +18,6 @@ data class Users (
     val password: String,
     val fullName: String,
     val phoneNumber: String,
-    val userRole: String
+    val userRole: String,
+    val userImage: String
 )

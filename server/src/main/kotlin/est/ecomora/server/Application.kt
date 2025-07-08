@@ -1,21 +1,31 @@
 package est.ecomora.server
 
-import est.ecomora.server.plugins.configureDatabases
-import est.ecomora.server.plugins.configureHTTP
-import est.ecomora.server.plugins.configureMonitoring
-import est.ecomora.server.plugins.configureRouting
-import est.ecomora.server.plugins.configureSecurity
-import est.ecomora.server.plugins.configureSerialization
+import est.ecomora.server.plugins.*
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.http.content.files
-import io.ktor.server.http.content.static
+import io.ktor.server.http.content.staticFiles
 import io.ktor.server.netty.Netty
 import io.ktor.server.routing.routing
+import java.io.File
 
 fun main() {
-    embeddedServer(Netty, port = SERVER_PORT, host = host, module = Application::module)
-        .start(wait = true)
+    try {
+        AppLogger.info("Starting Ecomora Server v${APP_VERSION} on ${SERVER_HOST}:${SERVER_PORT}")
+        AppLogger.info("Running in ${if (IS_PRODUCTION) "PRODUCTION" else "DEVELOPMENT"} mode")
+
+        // Ensure upload directory exists
+        val uploadDir = File(UPLOAD_DIR)
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs()
+            AppLogger.info("Created upload directory: ${uploadDir.absolutePath}")
+        }
+
+        embeddedServer(Netty, port = SERVER_PORT, host = SERVER_HOST, module = Application::module)
+            .start(wait = true)
+    } catch (e: Exception) {
+        AppLogger.error("Failed to start server", e)
+        throw e
+    }
 }
 
 fun Application.module() {
@@ -25,11 +35,10 @@ fun Application.module() {
     configureMonitoring()
     configureDatabases()
     configureSecurity()
+
+    // Configure static file serving
     routing {
-        static("upload") {
-            static("products") {
-                files("E:\\KMP Projects\\store-server\\upload\\products")
-            }
-        }
+        staticFiles("uploads", File(UPLOAD_DIR))
+        staticFiles("static", File("${STATIC_FILE_ROOT}/static"))
     }
 }

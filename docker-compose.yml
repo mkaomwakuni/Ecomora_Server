@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: ecomora-postgres
+    environment:
+      POSTGRES_DB: ecomora_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ecomora-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ecomora-server:
+    build: .
+    container_name: ecomora-server
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ENV: development
+      DATABASE_URL: jdbc:postgresql://postgres:5432/ecomora_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+      PORT: 8080
+      HOST: 0.0.0.0
+      STATIC_FILE_ROOT: /app/uploads
+      UPLOAD_DIR: /app/uploads
+      JWT_SECRET: development-secret-key-change-in-production-min-256-bits
+      JWT_AUDIENCE: ecomora-api
+      JWT_DOMAIN: https://localhost:8080/
+      JWT_REALM: ecomora server
+      JWT_EXPIRATION_HOURS: 24
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  postgres_data:
+  redis_data:

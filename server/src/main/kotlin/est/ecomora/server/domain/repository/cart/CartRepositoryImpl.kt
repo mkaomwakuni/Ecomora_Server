@@ -43,7 +43,7 @@ class CartRepositoryImpl: CartDao {
                val insertStatement = CartTable.insert { cart->
                    cart[CartTable.productId] = productId
                    cart[CartTable.userId] = userId
-                   cart[CartTable.quality] = quantity
+                   cart[CartTable.quantity] = quantity
                }
                val result = insertStatement.resultedValues?.firstOrNull()!!
                rowToCartItem(result)
@@ -61,7 +61,7 @@ class CartRepositoryImpl: CartDao {
     ): Int {
         return DatabaseFactory.dbQuery {
             CartTable.update({ CartTable.cartId.eq(cartId) }) { cart ->
-                cart[CartTable.quality] = quantity
+                cart[CartTable.quantity] = quantity
                 cart[CartTable.productId] = productId
                 cart[CartTable.userId] = userId
                 cart[CartTable.cartId] = cartId
@@ -77,7 +77,7 @@ class CartRepositoryImpl: CartDao {
     ) {
         return DatabaseFactory.dbQuery {
             CartTable.update({ CartTable.productId.eq(productId) and CartTable.userId.eq(userId) }) { cart ->
-                cart[CartTable.quality] = quantity
+                cart[CartTable.quantity] = quantity
                 cart[CartTable.productId] = productId
                 cart[CartTable.userId] = userId
                 cart[CartTable.cartId] = cartId
@@ -120,7 +120,7 @@ class CartRepositoryImpl: CartDao {
             return CartItem(
                 productId = row[CartTable.productId],
                 userId = row[CartTable.userId],
-                quantity = row[CartTable.quality],
+                quantity = row[CartTable.quantity],
                 cartId = row[CartTable.cartId]
             )
         }

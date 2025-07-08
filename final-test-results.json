@@ -1,0 +1,1198 @@
+{
+	"id": "9c2d29cc-2bfe-4d1a-a60f-e6762f8e59cc",
+	"name": "Ecomora Server API - Complete CRUD Testing",
+	"timestamp": "2025-07-06T20:02:19.414Z",
+	"collection_id": "46251456-e6a0cd93-d58a-45ca-9ccc-76ab70512db1",
+	"folder_id": 0,
+	"environment_id": "46251456-e4ae669a-6113-495e-9292-e7f6b6883632",
+	"totalPass": 43,
+	"delay": 0,
+	"persist": true,
+	"status": "error",
+	"startedAt": "2025-07-06T20:02:09.841Z",
+	"totalFail": 3,
+	"results": [
+		{
+			"id": "4c98493b-031c-49b8-bacd-422eeb51701c",
+			"name": "Health Check",
+			"url": "http://localhost:8080/health",
+			"time": 660,
+			"responseCode": {
+				"code": 500,
+				"name": "Internal Server Error"
+			},
+			"tests": {
+				"Response time is reasonable": true,
+				"Status code is 200": false,
+				"Response is JSON": false,
+				"Health status is healthy": false
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 200": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Response is JSON": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Health status is healthy": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				660
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true,
+					"Status code is 200": false,
+					"Response is JSON": false,
+					"Health status is healthy": false
+				}
+			]
+		},
+		{
+			"id": "b78d8de0-1e8f-4bb8-9546-6a68010486a1",
+			"name": "Server Info",
+			"url": "http://localhost:8080",
+			"time": 26,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				26
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "7c345a04-4906-457c-a643-ee2546280c4f",
+			"name": "Test Data Status",
+			"url": "http://localhost:8080/test/data",
+			"time": 433,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Response time is reasonable": true,
+				"Response is valid JSON": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response is valid JSON": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				433
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true,
+					"Response is valid JSON": true
+				}
+			]
+		},
+		{
+			"id": "a3090887-efe3-4f9c-a5fd-497606401f17",
+			"name": "Reset Test Data",
+			"url": "http://localhost:8080/test/reset-data",
+			"time": 147,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				147
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "7c8b6ad5-9539-4f47-bfac-23711809cd5b",
+			"name": "Register New User",
+			"url": "http://localhost:8080/api/v1/auth/register",
+			"time": 359,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Response time is reasonable": true,
+				"Response is valid JSON": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response is valid JSON": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				359
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true,
+					"Response is valid JSON": true
+				}
+			]
+		},
+		{
+			"id": "c0d17374-f715-4206-a575-79d1ab9a3612",
+			"name": "Login Test User",
+			"url": "http://localhost:8080/api/v1/auth/login",
+			"time": 252,
+			"responseCode": {
+				"code": 401,
+				"name": "Unauthorized"
+			},
+			"tests": {
+				"Response time is reasonable": true,
+				"Response is valid JSON": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response is valid JSON": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				252
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true,
+					"Response is valid JSON": true
+				}
+			]
+		},
+		{
+			"id": "6ced5cea-1728-43c9-bc27-e1ff399a4022",
+			"name": "Login Admin",
+			"url": "http://localhost:8080/api/v1/auth/login",
+			"time": 46,
+			"responseCode": {
+				"code": 401,
+				"name": "Unauthorized"
+			},
+			"tests": {
+				"Response time is reasonable": true,
+				"Response is valid JSON": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response is valid JSON": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				46
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true,
+					"Response is valid JSON": true
+				}
+			]
+		},
+		{
+			"id": "0bab6f4d-47c1-4a31-868f-0ade5749087c",
+			"name": "Get All Users",
+			"url": "http://localhost:8080/api/v1/users",
+			"time": 41,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Response time is reasonable": true,
+				"Response is valid JSON": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response is valid JSON": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				41
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true,
+					"Response is valid JSON": true
+				}
+			]
+		},
+		{
+			"id": "bc835fbe-98bf-4253-8c1a-42e97c37f4f2",
+			"name": "Get User by ID",
+			"url": "http://localhost:8080/api/v1/users/1",
+			"time": 89,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Response time is reasonable": true,
+				"Response is valid JSON": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response is valid JSON": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				89
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true,
+					"Response is valid JSON": true
+				}
+			]
+		},
+		{
+			"id": "6cb8f185-5573-4534-816a-1694b7cda7fa",
+			"name": "Delete User",
+			"url": "http://localhost:8080/api/v1/users/8",
+			"time": 222,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Response time is reasonable": true,
+				"Response is valid JSON": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response is valid JSON": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				222
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true,
+					"Response is valid JSON": true
+				}
+			]
+		},
+		{
+			"id": "6aba230a-7b60-4523-bd2f-81659065c2cc",
+			"name": "GET - All Categories",
+			"url": "http://localhost:8080/v1/categories",
+			"time": 29,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				29
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "1c8e4667-007a-47d8-bd83-b602c52f86c0",
+			"name": "GET - Category by ID",
+			"url": "http://localhost:8080/v1/categories/1",
+			"time": 75,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				75
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "363445a3-9ef6-4348-8652-14300d5f1534",
+			"name": "POST - Create Category",
+			"url": "http://localhost:8080/v1/categories",
+			"time": 563,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				563
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "3df1bc94-9dc0-47b8-aaba-7534b7d5831a",
+			"name": "PUT - Update Category",
+			"url": "http://localhost:8080/v1/categories/",
+			"time": 15,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				15
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "dcfd8a0f-dfff-48d2-ae90-3dac12b57123",
+			"name": "DELETE - Category",
+			"url": "http://localhost:8080/v1/categories/",
+			"time": 19,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				19
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "1bafeb36-1836-4a09-b231-1c45b576b2ae",
+			"name": "GET - All Products",
+			"url": "http://localhost:8080/v1/products",
+			"time": 40,
+			"responseCode": {
+				"code": 401,
+				"name": "Unauthorized"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				40
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "dfaa9800-6365-4424-8d9e-7e817c97f315",
+			"name": "GET - Product by ID",
+			"url": "http://localhost:8080/v1/products/1",
+			"time": 26,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				26
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "1ea040be-d203-4f02-97cd-309b2bd76034",
+			"name": "GET - Multiple Products",
+			"url": "http://localhost:8080/v1/products/multiple?ids=1,2,3",
+			"time": 66,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				66
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "02e8f43f-f17a-431b-bce6-f86ca5ac59db",
+			"name": "POST - Create Product",
+			"url": "http://localhost:8080/v1/products",
+			"time": 94,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				94
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "d287917e-93a3-415e-ab9d-40d304b28180",
+			"name": "PUT - Update Product",
+			"url": "http://localhost:8080/v1/products/",
+			"time": 14,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				14
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "9dc24b43-7bd5-4918-8454-6103e3e23781",
+			"name": "DELETE - Product",
+			"url": "http://localhost:8080/v1/products/",
+			"time": 37,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				37
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "09377421-64da-4d01-a7c8-1a4420523c01",
+			"name": "GET - All Services",
+			"url": "http://localhost:8080/v1/services",
+			"time": 26,
+			"responseCode": {
+				"code": 401,
+				"name": "Unauthorized"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				26
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "b3b83219-4e1f-4721-b9ad-aa960f65e48e",
+			"name": "GET - Service by ID",
+			"url": "http://localhost:8080/v1/services/1",
+			"time": 33,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				33
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "93c819ef-b296-407b-8745-98b62c0f5622",
+			"name": "POST - Create Service",
+			"url": "http://localhost:8080/v1/services",
+			"time": 87,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				87
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "27df96f9-7240-4b69-afdd-b5662b494271",
+			"name": "PUT - Update Service",
+			"url": "http://localhost:8080/v1/services/",
+			"time": 14,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				14
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "4648ca8f-1e11-42f7-9a6c-101dd45ebc98",
+			"name": "DELETE - Service",
+			"url": "http://localhost:8080/v1/services/",
+			"time": 20,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				20
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "e921c135-b599-4c70-92fc-e8c7550f2d08",
+			"name": "GET - All Promotions",
+			"url": "http://localhost:8080/v1/promotions",
+			"time": 30,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				30
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "907aad04-55a4-45f6-9460-3c083d63d1f7",
+			"name": "GET - Promotion by ID",
+			"url": "http://localhost:8080/v1/promotions/1",
+			"time": 36,
+			"responseCode": {
+				"code": 500,
+				"name": "Internal Server Error"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				36
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "819a7bb1-af29-4b8e-90a6-c38d2dce1b8d",
+			"name": "POST - Create Promotion",
+			"url": "http://localhost:8080/v1/promotions",
+			"time": 92,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				92
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "9c8441b2-a415-4693-9d1a-1380df227e00",
+			"name": "PUT - Update Promotion",
+			"url": "http://localhost:8080/v1/promotions/",
+			"time": 12,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				12
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "c9c52594-6696-443b-b02f-b5b7929db7ef",
+			"name": "DELETE - Promotion",
+			"url": "http://localhost:8080/v1/promotions/",
+			"time": 135,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				135
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "171ce467-1e57-4a28-96be-21f0a07aaaa2",
+			"name": "GET - All Prints",
+			"url": "http://localhost:8080/v1/prints",
+			"time": 35,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				35
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "a57ad4b8-517c-4e60-b3c1-ab09858e5e16",
+			"name": "GET - Print by ID",
+			"url": "http://localhost:8080/v1/prints/1",
+			"time": 133,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				133
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "49ca0357-cdf4-4a09-9df1-ca65bfd16b82",
+			"name": "POST - Create Print Service",
+			"url": "http://localhost:8080/v1/prints",
+			"time": 111,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				111
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "6c8d194d-b1d7-48d8-a521-9aa675e8ca04",
+			"name": "PUT - Update Print Service",
+			"url": "http://localhost:8080/v1/prints/",
+			"time": 10,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				10
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		},
+		{
+			"id": "0029a07c-9d92-440b-95f3-b37c05e88404",
+			"name": "POST - Add Product 1 to Cart (User 1)",
+			"url": "http://localhost:8080/v1/cart",
+			"time": 284,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Response time is reasonable": true
+			},
+			"testPassFailCounts": {
+				"Response time is reasonable": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				284
+			],
+			"allTests": [
+				{
+					"Response time is reasonable": true
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 4311,
+	"collection": {
+		"requests": [
+			{
+				"id": "4c98493b-031c-49b8-bacd-422eeb51701c",
+				"method": "GET"
+			},
+			{
+				"id": "b78d8de0-1e8f-4bb8-9546-6a68010486a1",
+				"method": "GET"
+			},
+			{
+				"id": "7c345a04-4906-457c-a643-ee2546280c4f",
+				"method": "GET"
+			},
+			{
+				"id": "a3090887-efe3-4f9c-a5fd-497606401f17",
+				"method": "POST"
+			},
+			{
+				"id": "7c8b6ad5-9539-4f47-bfac-23711809cd5b",
+				"method": "POST"
+			},
+			{
+				"id": "c0d17374-f715-4206-a575-79d1ab9a3612",
+				"method": "POST"
+			},
+			{
+				"id": "6ced5cea-1728-43c9-bc27-e1ff399a4022",
+				"method": "POST"
+			},
+			{
+				"id": "0bab6f4d-47c1-4a31-868f-0ade5749087c",
+				"method": "GET"
+			},
+			{
+				"id": "bc835fbe-98bf-4253-8c1a-42e97c37f4f2",
+				"method": "GET"
+			},
+			{
+				"id": "6cb8f185-5573-4534-816a-1694b7cda7fa",
+				"method": "DELETE"
+			},
+			{
+				"id": "6aba230a-7b60-4523-bd2f-81659065c2cc",
+				"method": "GET"
+			},
+			{
+				"id": "1c8e4667-007a-47d8-bd83-b602c52f86c0",
+				"method": "GET"
+			},
+			{
+				"id": "363445a3-9ef6-4348-8652-14300d5f1534",
+				"method": "POST"
+			},
+			{
+				"id": "3df1bc94-9dc0-47b8-aaba-7534b7d5831a",
+				"method": "PUT"
+			},
+			{
+				"id": "dcfd8a0f-dfff-48d2-ae90-3dac12b57123",
+				"method": "DELETE"
+			},
+			{
+				"id": "1bafeb36-1836-4a09-b231-1c45b576b2ae",
+				"method": "GET"
+			},
+			{
+				"id": "dfaa9800-6365-4424-8d9e-7e817c97f315",
+				"method": "GET"
+			},
+			{
+				"id": "1ea040be-d203-4f02-97cd-309b2bd76034",
+				"method": "GET"
+			},
+			{
+				"id": "02e8f43f-f17a-431b-bce6-f86ca5ac59db",
+				"method": "POST"
+			},
+			{
+				"id": "d287917e-93a3-415e-ab9d-40d304b28180",
+				"method": "PUT"
+			},
+			{
+				"id": "9dc24b43-7bd5-4918-8454-6103e3e23781",
+				"method": "DELETE"
+			},
+			{
+				"id": "09377421-64da-4d01-a7c8-1a4420523c01",
+				"method": "GET"
+			},
+			{
+				"id": "b3b83219-4e1f-4721-b9ad-aa960f65e48e",
+				"method": "GET"
+			},
+			{
+				"id": "93c819ef-b296-407b-8745-98b62c0f5622",
+				"method": "POST"
+			},
+			{
+				"id": "27df96f9-7240-4b69-afdd-b5662b494271",
+				"method": "PUT"
+			},
+			{
+				"id": "4648ca8f-1e11-42f7-9a6c-101dd45ebc98",
+				"method": "DELETE"
+			},
+			{
+				"id": "e921c135-b599-4c70-92fc-e8c7550f2d08",
+				"method": "GET"
+			},
+			{
+				"id": "907aad04-55a4-45f6-9460-3c083d63d1f7",
+				"method": "GET"
+			},
+			{
+				"id": "819a7bb1-af29-4b8e-90a6-c38d2dce1b8d",
+				"method": "POST"
+			},
+			{
+				"id": "9c8441b2-a415-4693-9d1a-1380df227e00",
+				"method": "PUT"
+			},
+			{
+				"id": "c9c52594-6696-443b-b02f-b5b7929db7ef",
+				"method": "DELETE"
+			},
+			{
+				"id": "171ce467-1e57-4a28-96be-21f0a07aaaa2",
+				"method": "GET"
+			},
+			{
+				"id": "a57ad4b8-517c-4e60-b3c1-ab09858e5e16",
+				"method": "GET"
+			},
+			{
+				"id": "49ca0357-cdf4-4a09-9df1-ca65bfd16b82",
+				"method": "POST"
+			},
+			{
+				"id": "6c8d194d-b1d7-48d8-a521-9aa675e8ca04",
+				"method": "PUT"
+			},
+			{
+				"id": "0029a07c-9d92-440b-95f3-b37c05e88404",
+				"method": "POST"
+			}
+		]
+	}
+}

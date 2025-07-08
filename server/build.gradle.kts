@@ -18,7 +18,11 @@ plugins {
     alias(libs.plugins.ktor)
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.23"
     id("com.github.johnrengelman.shadow")
-    application
+}
+tasks.shadowJar {
+    manifest {
+        attributes["Main-Class"] = "est.ecomora.server.ApplicationKt"
+    }
 }
 
 group = "est.ecomora.server"
@@ -27,18 +31,13 @@ version = "1.0.0"
 application {
     mainClass.set("est.ecomora.server.ApplicationKt")
     val isDevelopment: Boolean = project.ext.has("development")
-    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=${extra["io.ktor.development"] ?: "false"}")
+    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=${isDevelopment}")
 }
 
-tasks.shadowJar {
-    manifest {
-        attributes["Main-Class"] = "est.ecomora.server.ApplicationKt"
-    }
-}
 
 tasks.processResources {
     from(sourceSets["main"].resources.srcDirs)
-    into("${layout.buildDirectory.get()}/upload/products")
+    into(layout.buildDirectory.dir("upload/products"))
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
     filesMatching("application.conf") {
@@ -50,6 +49,27 @@ tasks.processResources {
             )
         )
     }
+}
+kotlin {
+    jvmToolchain(21)
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = "21"
+    }
+}
+
+tasks.withType<JavaCompile> {
+    options.release.set(21)
 }
 
 repositories {
@@ -94,28 +114,17 @@ dependencies {
     
     // Redis dependencies
     implementation("redis.clients:jedis:$redis_version")
-}
+    
+    // Security dependencies
+    implementation("at.favre.lib:bcrypt:0.10.2")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.78")
 
+    // M-Pesa/Ktor client dependencies
+    implementation("io.ktor:ktor-client-core-jvm:$ktor_version")
+    implementation("io.ktor:ktor-client-cio-jvm:$ktor_version")
+    implementation("io.ktor:ktor-client-content-negotiation-jvm:$ktor_version")
+    implementation("io.ktor:ktor-client-logging-jvm:$ktor_version")
+}
 tasks.create("stage") {
     dependsOn("installDist")
-}
-
-kotlin {
-    jvmToolchain(21)
-}
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
-    }
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "21"
-    }
-}
-
-tasks.withType<JavaCompile> {
-    options.release.set(21)
 }

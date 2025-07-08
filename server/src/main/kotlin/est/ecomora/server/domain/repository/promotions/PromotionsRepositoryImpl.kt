@@ -1,11 +1,9 @@
 package est.ecomora.server.domain.repository.promotions
 
 import est.ecomora.server.data.local.table.DatabaseFactory
-import est.ecomora.server.data.local.table.products.ProductsTable
 import est.ecomora.server.data.local.table.promotions.PromotionTable
 import est.ecomora.server.data.repository.promotions.PromotionDao
 import est.ecomora.server.domain.model.promotions.Promotions
-import jdk.jfr.internal.jfc.model.SettingsLog.enable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
@@ -13,6 +11,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.statements.InsertStatement
+import org.jetbrains.exposed.sql.update
 
 class PromotionsRepositoryImpl: PromotionDao {
     override suspend fun insertPromo(
@@ -47,13 +46,13 @@ class PromotionsRepositoryImpl: PromotionDao {
         enabled: Boolean
     ) {
         DatabaseFactory.dbQuery {
-                PromotionTable.insert { promotion ->
-                promotion[PromotionTable.title] = title
-                promotion[PromotionTable.description] = description
-                promotion[PromotionTable.imageUrl] = imageUrl
-                promotion[PromotionTable.startDate] = startDate
-                promotion[PromotionTable.endDate] = endDate
-                promotion[PromotionTable.enabled] = enabled
+            PromotionTable.update({ PromotionTable.id eq id }) {
+                it[PromotionTable.title] = title
+                it[PromotionTable.description] = description
+                it[PromotionTable.imageUrl] = imageUrl
+                it[PromotionTable.startDate] = startDate
+                it[PromotionTable.endDate] = endDate
+                it[PromotionTable.enabled] = enabled
             }
         }
     }
@@ -69,7 +68,7 @@ class PromotionsRepositoryImpl: PromotionDao {
 
     override suspend fun getPromotionById(id: Long): Promotions? {
         return DatabaseFactory.dbQuery {
-            PromotionTable.select { ProductsTable.id.eq(id) }
+            PromotionTable.select { PromotionTable.id.eq(id) }
                 .map {
                     rowToResponse(it)
                 }.single()
@@ -84,7 +83,7 @@ class PromotionsRepositoryImpl: PromotionDao {
 
     private fun rowToResponse(row: ResultRow): Promotions? {
         if (row == null) {
-            null
+            return null
         } else {
             return Promotions(
                 id = row[PromotionTable.id],

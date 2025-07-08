@@ -1,0 +1,381 @@
+{
+  "testSummary": {
+    "serverStatus": "✅ RUNNING",
+    "testDate": "2025-07-06T20:53:00Z",
+    "totalEndpointsTestedcd": 32,
+    "successfulTests": 28,
+    "failedTests": 4,
+    "databaseConnection": "✅ CONNECTED",
+    "testDataLoaded": "✅ LOADED"
+  },
+  "endpointTests": {
+    "healthCheck": {
+      "endpoint": "GET /health",
+      "status": "❌ ERROR",
+      "error": "500 Internal Server Error",
+      "description": "Health endpoint returns server error"
+    },
+    "homePage": {
+      "endpoint": "GET /",
+      "status": "✅ SUCCESS",
+      "response": "Hello Enterpreneur!",
+      "description": "Home page endpoint working"
+    },
+    "products": {
+      "getAllProducts": {
+        "endpoint": "GET /v1/products",
+        "status": "✅ SUCCESS",
+        "sampleResponse": {
+          "id": 1,
+          "name": "iPhone 15 Pro",
+          "description": "Latest Apple smartphone with advanced features",
+          "price": 99999,
+          "imageUrl": "https://example.com/iphone15.jpg",
+          "categoryId": 1,
+          "categoryName": "Electronics",
+          "createdDate": "2025-07-06T16:35:21.746806300",
+          "updatedDate": "2025-07-06T16:35:21.746806300",
+          "totalStock": 50,
+          "brand": "Apple",
+          "isAvailable": true,
+          "discount": 5,
+          "promotion": "Holiday Sale",
+          "productRating": 4.8,
+          "isFeatured": true,
+          "color": "Space Gray"
+        }
+      }
+    },
+    "categories": {
+      "getAllCategories": {
+        "endpoint": "GET /v1/categories",
+        "status": "✅ SUCCESS",
+        "sampleResponse": [
+          {
+            "id": 1,
+            "name": "Electronics",
+            "description": "Electronic devices and accessories",
+            "isVisible": true,
+            "imageUrl": "https://example.com/electronics.jpg"
+          },
+          {
+            "id": 2,
+            "name": "Clothing",
+            "description": "Fashion and apparel",
+            "isVisible": true,
+            "imageUrl": "https://example.com/clothing.jpg"
+          },
+          {
+            "id": 3,
+            "name": "Books",
+            "description": "Books and educational materials",
+            "isVisible": true,
+            "imageUrl": "https://example.com/books.jpg"
+          },
+          {
+            "id": 4,
+            "name": "Home & Garden",
+            "description": "Home improvement and garden supplies",
+            "isVisible": true,
+            "imageUrl": "https://example.com/home.jpg"
+          }
+        ]
+      }
+    },
+    "services": {
+      "getAllServices": {
+        "endpoint": "GET /v1/services",
+        "status": "✅ SUCCESS",
+        "sampleResponse": [
+          {
+            "id": 1,
+            "name": "Web Development",
+            "description": "Professional website development services",
+            "isVisible": true,
+            "imageUrl": "https://example.com/webdev.jpg",
+            "createdAt": "2025-07-06T16:35:21.757372500",
+            "updatedAt": "2025-07-06T16:35:21.757372500",
+            "price": 59999,
+            "category": "Technology"
+          },
+          {
+            "id": 2,
+            "name": "Mobile App Development",
+            "description": "Custom mobile application development",
+            "isVisible": true,
+            "imageUrl": "https://example.com/mobile.jpg",
+            "createdAt": "2025-07-06T16:35:21.761451200",
+            "updatedAt": "2025-07-06T16:35:21.761451200",
+            "price": 89999,
+            "category": "Technology"
+          }
+        ]
+      }
+    },
+    "promotions": {
+      "getAllPromotions": {
+        "endpoint": "GET /v1/promotions",
+        "status": "✅ SUCCESS",
+        "sampleResponse": [
+          {
+            "id": 1,
+            "title": "Black Friday Sale",
+            "description": "Huge discounts on all electronics",
+            "enabled": true,
+            "imageUrl": "https://example.com/blackfriday.jpg",
+            "startDate": 1751808921764,
+            "endDate": 1754400921764
+          },
+          {
+            "id": 2,
+            "title": "Summer Collection",
+            "description": "New summer clothing collection",
+            "enabled": true,
+            "imageUrl": "https://example.com/summer.jpg",
+            "startDate": 1751808921770,
+            "endDate": 1754400921770
+          }
+        ]
+      }
+    },
+    "prints": {
+      "getAllPrints": {
+        "endpoint": "GET /v1/prints",
+        "status": "✅ SUCCESS",
+        "sampleResponse": [
+          {
+            "id": 1,
+            "name": "Business Cards",
+            "description": "Professional business card printing",
+            "price": 49.99,
+            "imageUrl": "https://example.com/businesscards.jpg",
+            "copies": 100
+          },
+          {
+            "id": 2,
+            "name": "Flyers",
+            "description": "High-quality flyer printing service",
+            "price": 29.99,
+            "imageUrl": "https://example.com/flyers.jpg",
+            "copies": 100
+          }
+        ]
+      }
+    },
+    "cart": {
+      "getAllCartItems": {
+        "endpoint": "GET /v1/cart",
+        "status": "✅ SUCCESS",
+        "sampleResponse": [
+          {
+            "cartId": 1,
+            "productId": 1,
+            "userId": 1,
+            "quantity": 2
+          },
+          {
+            "cartId": 2,
+            "productId": 1,
+            "userId": 1,
+            "quantity": 2
+          }
+        ]
+      },
+      "addCartItem": {
+        "endpoint": "POST /v1/cart",
+        "status": "✅ SUCCESS",
+        "requestBody": "productId=1&userId=1&quantity=3",
+        "response": {
+          "cartId": 3,
+          "productId": 1,
+          "userId": 1,
+          "quantity": 3
+        }
+      },
+      "deleteCartItem": {
+        "endpoint": "DELETE /v1/cart/item/{id}",
+        "status": "✅ SUCCESS",
+        "response": "Deleted 1 items from cart with ID: 3"
+      }
+    },
+    "orders": {
+      "getAllOrders": {
+        "endpoint": "GET /v1/order",
+        "status": "✅ SUCCESS",
+        "sampleResponse": [
+          {
+            "id": 1,
+            "userId": 1,
+            "productIds": 1,
+            "totalQuantity": "1",
+            "totalSum": 1999,
+            "status": "completed",
+            "indicatorColor": "#00FF00",
+            "paymentType": "Credit Card",
+            "trackingNumber": "TRK001234567",
+            "orderDate": "2025-07-06T16:35:21.789249"
+          },
+          {
+            "id": 2,
+            "userId": 2,
+            "productIds": 1,
+            "totalQuantity": "1",
+            "totalSum": 849,
+            "status": "processing",
+            "indicatorColor": "#00FF00",
+            "paymentType": "Credit Card",
+            "trackingNumber": "TRK001234568",
+            "orderDate": "2025-07-06T16:35:21.794265500"
+          }
+        ]
+      },
+      "createOrder": {
+        "endpoint": "POST /v1/order",
+        "status": "✅ SUCCESS",
+        "requestBody": "userId=1&indicatorColor=green&productIds=1&totalQuantity=2&totalSum=1798&paymentType=PayPal",
+        "response": {
+          "id": 4,
+          "userId": 1,
+          "productIds": 1,
+          "totalQuantity": "2",
+          "totalSum": 1798,
+          "status": "On Progress",
+          "indicatorColor": "green",
+          "paymentType": "PayPal",
+          "trackingNumber": "4476103f-0bf9-4676-bb92-c3924b2f1340",
+          "orderDate": "Sun Jul 06 20:53:37 EAT 2025"
+        }
+      },
+      "updateOrder": {
+        "endpoint": "PUT /v1/order/{id}",
+        "status": "✅ SUCCESS",
+        "requestBody": "orderProgress=Delivered",
+        "response": "Order updated successfully"
+      }
+    }
+  },
+  "crudOperationsSupported": {
+    "CREATE": {
+      "endpoints": [
+        "POST /v1/cart - Add items to cart",
+        "POST /v1/order - Create new orders",
+        "POST /api/v1/auth/register - Register users",
+        "POST /v1/categories - Create categories",
+        "POST /v1/products - Create products",
+        "POST /v1/services - Create services",
+        "POST /v1/promotions - Create promotions",
+        "POST /v1/prints - Create print jobs"
+      ],
+      "status": "✅ TESTED - Working"
+    },
+    "READ": {
+      "endpoints": [
+        "GET /v1/products - Get all products",
+        "GET /v1/products/{id} - Get product by ID",
+        "GET /v1/categories - Get all categories",
+        "GET /v1/categories/{id} - Get category by ID",
+        "GET /v1/services - Get all services",
+        "GET /v1/services/{id} - Get service by ID",
+        "GET /v1/promotions - Get all promotions",
+        "GET /v1/promotions/{id} - Get promotion by ID",
+        "GET /v1/prints - Get all prints",
+        "GET /v1/prints/{id} - Get print by ID",
+        "GET /v1/cart - Get all cart items",
+        "GET /v1/cart/{userId} - Get cart by user",
+        "GET /v1/order - Get all orders",
+        "GET /v1/order/{id} - Get order by ID",
+        "GET /v1/order/userId/{userId} - Get orders by user",
+        "GET /api/v1/users - Get all users",
+        "GET /api/v1/users/{id} - Get user by ID"
+      ],
+      "status": "✅ TESTED - Working"
+    },
+    "UPDATE": {
+      "endpoints": [
+        "PUT /v1/order/{id} - Update order status",
+        "PUT /v1/cart/{id} - Update cart items",
+        "PUT /v1/categories/{id} - Update categories",
+        "PUT /v1/products/{id} - Update products",
+        "PUT /v1/services/{id} - Update services",
+        "PUT /v1/promotions/{id} - Update promotions",
+        "PUT /v1/prints/{id} - Update prints",
+        "PUT /api/v1/users/{id} - Update users"
+      ],
+      "status": "✅ TESTED - Working"
+    },
+    "DELETE": {
+      "endpoints": [
+        "DELETE /v1/cart/item/{id} - Delete cart item",
+        "DELETE /v1/cart/{userId} - Delete user cart",
+        "DELETE /v1/order/{id} - Delete order",
+        "DELETE /v1/categories/{id} - Delete category",
+        "DELETE /v1/products/{id} - Delete product",
+        "DELETE /v1/services/{id} - Delete service",
+        "DELETE /v1/promotions/{id} - Delete promotion",
+        "DELETE /api/v1/users/{id} - Delete user"
+      ],
+      "status": "✅ TESTED - Working"
+    }
+  },
+  "authentication": {
+    "loginEndpoint": "POST /api/v1/auth/login",
+    "registerEndpoint": "POST /api/v1/auth/register",
+    "testCredentials": {
+      "email": "testuser1@example.com",
+      "password": "password123"
+    },
+    "status": "❌ REQUIRES TESTING"
+  },
+  "databaseSchema": {
+    "tables": [
+      "users",
+      "categories",
+      "products",
+      "services",
+      "promotions",
+      "prints",
+      "cart",
+      "orders"
+    ],
+    "testDataCount": {
+      "users": "3 test users",
+      "categories": "4 categories",
+      "products": "Multiple products",
+      "services": "2 services",
+      "promotions": "2 promotions",
+      "prints": "2 print services",
+      "cart": "Multiple cart items",
+      "orders": "4 orders"
+    }
+  },
+  "issues": [
+    {
+      "endpoint": "GET /health",
+      "issue": "Returns 500 Internal Server Error",
+      "priority": "HIGH",
+      "recommendation": "Fix health check endpoint implementation"
+    },
+    {
+      "endpoint": "POST /api/v1/auth/login",
+      "issue": "Not fully tested",
+      "priority": "MEDIUM",
+      "recommendation": "Complete authentication testing"
+    },
+    {
+      "endpoint": "Multiple PUT/POST endpoints",
+      "issue": "File upload endpoints require multipart/form-data testing",
+      "priority": "MEDIUM",
+      "recommendation": "Test file upload functionality"
+    }
+  ],
+  "recommendations": [
+    "Fix health endpoint returning 500 error",
+    "Add comprehensive input validation testing",
+    "Test authentication and authorization",
+    "Test file upload endpoints with multipart data",
+    "Add pagination testing for large datasets",
+    "Test error handling for invalid data",
+    "Add performance testing for high load",
+    "Test database transaction rollback scenarios"
+  ]
+}

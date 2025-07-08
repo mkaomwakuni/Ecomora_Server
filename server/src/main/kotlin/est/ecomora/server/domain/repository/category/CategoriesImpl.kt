@@ -23,9 +23,10 @@ class CategoriesRepositoryImpl: CategoriesDao {
     ): Categories? {
         var arguments: InsertStatement<Number>? = null
         DatabaseFactory.dbQuery {
-            arguments = CategoriesTable.insert { category ->
+            arguments = CategoriesTable.insert{ category ->
                 category[CategoriesTable.name] = name
                 category[CategoriesTable.description] = description
+                category[CategoriesTable.productCount] = 0L // Initialize with 0 products
                 category[CategoriesTable.isVisible] = isVisible
                 category[CategoriesTable.imageUrl] = imageUrl
             }
@@ -82,6 +83,7 @@ class CategoriesRepositoryImpl: CategoriesDao {
             id = row[CategoriesTable.id],
             name = row[CategoriesTable.name],
             description = row[CategoriesTable.description],
+            productCount = row[CategoriesTable.productCount],
             isVisible = row[CategoriesTable.isVisible],
             imageUrl = row[CategoriesTable.imageUrl]
         )

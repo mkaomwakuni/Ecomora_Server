@@ -25,8 +25,8 @@ interface UsersDao {
         email: String,
         phoneNumber: String,
         userRole: String,
-        usersImage: String,
-        fullName: String
+        fullName: String,
+        usersImage: String
     ):  Users?
     suspend fun login (
         email: String,
@@ -39,7 +39,6 @@ interface UsersDao {
         id: Long,
         username: String,
         email: String,
-        password: String,
         fullName: String,
         phoneNumber: String
     ): Int
@@ -54,5 +53,6 @@ interface UsersDao {
         email: String,
         password: String,
         fullName: String,
+        userImage: String,
         phoneNumber: String): Int
 }
