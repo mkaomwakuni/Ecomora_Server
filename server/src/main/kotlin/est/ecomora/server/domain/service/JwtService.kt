@@ -17,6 +17,9 @@ object JwtService {
         .withIssuer(SecurityConfig.jwtDomain)
         .build()
 
+    // verifier property for authentication configuration
+    val verifier: JWTVerifier = jwtVerifier
+
     /**
      * Generates a JWT token for a user
      * @param userId The user ID to include in the token

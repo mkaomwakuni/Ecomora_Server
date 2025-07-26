@@ -6,6 +6,7 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.cachingheaders.*
 import io.ktor.server.plugins.defaultheaders.*
+import io.ktor.server.request.uri
 
 /**
  * Configures HTTP-related plugins for the Ktor application.
@@ -31,13 +32,20 @@ fun Application.configureHTTP() {
 
     // Caching headers for static content
     install(CachingHeaders) {
-        options { _, outgoingContent ->
+        options { call, outgoingContent ->
             when (outgoingContent.contentType?.withoutParameters()) {
                 ContentType.Text.CSS -> CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 24 * 60 * 60))
                 ContentType.Text.JavaScript -> CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 24 * 60 * 60))
                 ContentType.Image.PNG, ContentType.Image.JPEG, ContentType.Image.GIF -> 
                     CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 7 * 24 * 60 * 60))
-                else -> null
+                else -> {
+                    // For API endpoints, prevent caching to avoid user data mixing
+                    if (call.request.uri.startsWith("/api/") || call.request.uri.startsWith("/v1/")) {
+                        CachingOptions(CacheControl.NoCache(null))
+                    } else {
+                        null
+                    }
+                }
             }
         }
     }

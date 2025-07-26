@@ -31,10 +31,10 @@ fun main() {
 fun Application.module() {
     configureSerialization()
     configureHTTP()
-    configureRouting()
     configureMonitoring()
     configureDatabases()
     configureSecurity()
+    configureRouting()
 
     // Configure static file serving
     routing {

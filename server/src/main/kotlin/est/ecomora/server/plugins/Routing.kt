@@ -1,12 +1,12 @@
 package est.ecomora.server.plugins
 
 import est.ecomora.server.data.local.table.DatabaseFactory
-import est.ecomora.server.domain.model.prints.PrintsRepositoryImpl
 import est.ecomora.server.domain.repository.cart.CartRepositoryImpl
 import est.ecomora.server.domain.repository.category.CategoriesRepositoryImpl
 import est.ecomora.server.domain.repository.order.OrderRepositoryImpl
 import est.ecomora.server.domain.repository.products.ProductsRepositoryImpl
 import est.ecomora.server.domain.repository.promotions.PromotionsRepositoryImpl
+import est.ecomora.server.domain.repository.sales.SalesRepositoryImpl
 import est.ecomora.server.domain.repository.services.EservicesRepositoryImpl
 import est.ecomora.server.domain.repository.users.UsersRepositoryImpl
 import est.ecomora.server.routes.*
@@ -25,10 +25,10 @@ fun Application.configureRouting() {
     val categoriesRepository = CategoriesRepositoryImpl()
     val productsRepository = ProductsRepositoryImpl()
     val eservicesRepository = EservicesRepositoryImpl()
-    val printsRepository = PrintsRepositoryImpl()
     val promotionsRepository = PromotionsRepositoryImpl()
     val cartRepository = CartRepositoryImpl()
     val orderRepository = OrderRepositoryImpl()
+    val salesRepository = SalesRepositoryImpl()
     
     routing {
         // Health check endpoints
@@ -44,13 +44,11 @@ fun Application.configureRouting() {
         categoryRoutes(categoriesRepository)
         productRoutes(productsRepository)
         serviceRoutes(eservicesRepository)
-        printRoutes(printsRepository)
         promotionRoutes(promotionsRepository)
         cartRoutes(cartRepository)
-        orderRoutes(orderRepository)
-        
-        // Test routes for development
-        testRoutes()
+        orderRoutes(orderRepository, eservicesRepository)
+        salesRoutes(salesRepository)
+        metricsRoutes(salesRepository, productsRepository, eservicesRepository)
     }
 
     AppLogger.info("Routing configuration completed")

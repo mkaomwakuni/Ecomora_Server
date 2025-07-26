@@ -1,44 +1,50 @@
 package est.ecomora.server.domain.service
 
-import java.security.SecureRandom
-import java.util.*
-import javax.crypto.SecretKeyFactory
-import javax.crypto.spec.PBEKeySpec
+import at.favre.lib.crypto.bcrypt.BCrypt
 import java.util.Base64
 
+/**
+ * Password service using BCrypt for secure password hashing
+ */
 object PasswordService {
-    private const val ALGORITHM = "PBKDF2WithHmacSHA256"
-    private const val ITERATIONS = 100_000
-    private const val KEY_LENGTH = 256
-    private const val SALT_LENGTH = 32
+    private const val BCRYPT_COST = 12 // Higher cost = more secure but slower
 
-    /**
-     * Hashes a plain text password using PBKDF2
-     * @param plainPassword The plain text password to hash
-     * @return The hashed password with salt (base64 encoded)
-     */
     fun hashPassword(plainPassword: String): String {
-        val salt = generateSalt()
-        val hash = hashPassword(plainPassword, salt)
-        return "${Base64.getEncoder().encodeToString(salt)}:${
-            Base64.getEncoder().encodeToString(hash)
-        }"
+        return BCrypt.withDefaults().hashToString(BCRYPT_COST, plainPassword.toCharArray())
     }
 
-    /**
-     * Verifies a plain text password against a hashed password
-     * @param plainPassword The plain text password to verify
-     * @param hashedPassword The hashed password with salt to verify against
-     * @return True if the password matches, false otherwise
-     */
     fun verifyPassword(plainPassword: String, hashedPassword: String): Boolean {
+        return try {
+
+            if (hashedPassword.contains(":") && hashedPassword.split(":").size == 2) {
+
+                verifyLegacyPBKDF2Password(plainPassword, hashedPassword)
+            } else {
+
+                BCrypt.verifyer().verify(plainPassword.toCharArray(), hashedPassword).verified
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+
+    private fun verifyLegacyPBKDF2Password(plainPassword: String, hashedPassword: String): Boolean {
         return try {
             val parts = hashedPassword.split(":")
             if (parts.size != 2) return false
 
             val salt = Base64.getDecoder().decode(parts[0])
             val expectedHash = Base64.getDecoder().decode(parts[1])
-            val actualHash = hashPassword(plainPassword, salt)
+
+            val spec = javax.crypto.spec.PBEKeySpec(
+                plainPassword.toCharArray(),
+                salt,
+                100_000,
+                256
+            )
+            val factory = javax.crypto.SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+            val actualHash = factory.generateSecret(spec).encoded
 
             expectedHash.contentEquals(actualHash)
         } catch (e: Exception) {
@@ -46,16 +52,7 @@ object PasswordService {
         }
     }
 
-    private fun generateSalt(): ByteArray {
-        val random = SecureRandom()
-        val salt = ByteArray(SALT_LENGTH)
-        random.nextBytes(salt)
-        return salt
-    }
-
-    private fun hashPassword(password: String, salt: ByteArray): ByteArray {
-        val spec = PBEKeySpec(password.toCharArray(), salt, ITERATIONS, KEY_LENGTH)
-        val factory = SecretKeyFactory.getInstance(ALGORITHM)
-        return factory.generateSecret(spec).encoded
+    fun isLegacyassword(hashedPassword: String): Boolean {
+        return hashedPassword.contains(":") && hashedPassword.split(":").size == 2
     }
 }

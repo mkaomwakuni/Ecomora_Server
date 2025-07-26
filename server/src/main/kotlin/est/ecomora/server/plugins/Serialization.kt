@@ -10,16 +10,6 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import kotlinx.serialization.json.Json
 
-/**
- * Configures serialization and routing for the Ktor application.
- *
- * This function sets up JSON serialization with pretty printing and lenient parsing,
- * and adds a sample endpoint that responds with a simple JSON object.
- *
- * @see ContentNegotiation
- * @see Json
- */
-
 fun Application.configureSerialization() {
     install(ContentNegotiation) {
         json(Json {
