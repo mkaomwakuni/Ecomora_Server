@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class EServices  (
     val id: Long,
+    val userId: Long,
     val name: String,
     val description: String,
     val isVisible: Boolean,
@@ -13,5 +14,8 @@ data class EServices  (
     val createdAt: String,
     val updatedAt: String,
     val price: Long,
-    val category: String,
+    val categoryName: String,
+    val categoryId: Long,
+    val discount: Long = 0,
+    val promotion: String = ""
 )

@@ -8,11 +8,15 @@ interface EservicesDao {
         description: String,
         price: Long,
         offered: Long,
-        category: String,
+        categoryName: String,
+        categoryId: Long,
         imageUrl: String,
         isVisible: Boolean,
         createdAt: String,
-        updatedAt: String
+        updatedAt: String,
+        userId: Long,
+        discount: Long = 0,
+        promotion: String = ""
     ): EServices?
 
     suspend fun updateService(
@@ -21,14 +25,20 @@ interface EservicesDao {
         description: String,
         price: Long,
         offered: Long,
-        category: String,
+        categoryName: String,
+        categoryId: Long,
         imageUrl: String,
         isVisible: Boolean,
         createdAt: String,
-        updatedAt: String
+        updatedAt: String,
+        userId: Long,
+        discount: Long = 0,
+        promotion: String = ""
     ): Int
 
-    suspend fun getServiceById(id: Long): EServices?
-    suspend fun getAllServices(): List<EServices>?
-    suspend fun deleteServiceById(id: Long): Int
+    suspend fun getServiceById(id: Long, userId: Long): EServices?
+    suspend fun getAllServicesByUserId(userId: Long): List<EServices>?
+    suspend fun deleteServiceById(id: Long, userId: Long): Int
+
+    suspend fun updateOfferedCounter(serviceId: Long, quantity: Long, userId: Long): Int?
 }
