@@ -28,10 +28,10 @@ class OrderRepositoryImpl: OrderDao {
         var arguments: InsertStatement<Number>? = null
         DatabaseFactory.dbQuery {
             arguments = OrderTable.insert { order ->
-                order[OrderTable.userId] = userId
-                order[OrderTable.productIds] = productIds
-                order[OrderTable.totalQuantity] = totalQuantity
-                order[OrderTable.totalSum] = totalSum
+                order[OrderTable.userId] = userId.toLong()
+                order[OrderTable.productIds] = productIds.toString()
+                order[OrderTable.totalQuantity] = totalQuantity.toIntOrNull() ?: 0
+                order[OrderTable.totalSum] = totalSum.toLong()
                 order[OrderTable.status] = status
                 order[OrderTable.paymentType] = paymentType
                 order[OrderTable.trackingNumber] = trackingNumber
@@ -77,7 +77,7 @@ class OrderRepositoryImpl: OrderDao {
 
     override suspend fun getAllOrdersByUserId(id: Int): List<Order> {
         return DatabaseFactory.dbQuery {
-            OrderTable.select { OrderTable.userId eq id }
+            OrderTable.select { OrderTable.userId eq id.toLong() }
                 .mapNotNull { rowToOrder(it) }
         }
     }

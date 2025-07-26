@@ -5,10 +5,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Order (
     val id: Long,
-    val userId: Int,
-    val productIds: Int,
-    val totalQuantity: String,
-    val totalSum: Int,
+    val userId: Long,
+    val productIds: String,
+    val totalQuantity: Int,
+    val totalSum: Long,
     val status: String,
     val indicatorColor: String,
     val paymentType: String,
