@@ -25,13 +25,15 @@ class UsersRepositoryImpl : UsersDao {
         return try {
             Users(
                 id = row[UsersTable.id],
-                username = row[UsersTable.username],
-                password = "", // Never return password in response
+                userName = row[UsersTable.username],
                 email = row[UsersTable.email],
                 phoneNumber = row[UsersTable.phoneNumber],
                 userRole = row[UsersTable.userRole],
                 fullName = row[UsersTable.fullName],
-                userImage = row[UsersTable.userImage]
+                imageUrl = row[UsersTable.imageUrl],
+                profile = row[UsersTable.profile],
+                createdAt = row[UsersTable.createdAt],
+                updatedAt = row[UsersTable.updatedAt]
             )
         } catch (e: Exception) {
             AppLogger.error("Error converting database row to User object", e)
@@ -51,6 +53,7 @@ class UsersRepositoryImpl : UsersDao {
         return try {
             var insertStatement: InsertStatement<Number>? = null
             val hashedPassword = PasswordService.hashPassword(password)
+            val currentTime = System.currentTimeMillis().toString()
 
             DatabaseFactory.dbQuery {
                 insertStatement = UsersTable.insert { users ->
@@ -59,8 +62,11 @@ class UsersRepositoryImpl : UsersDao {
                     users[UsersTable.password] = hashedPassword
                     users[UsersTable.phoneNumber] = phoneNumber
                     users[UsersTable.userRole] = userRole
-                    users[UsersTable.userImage] = usersImage
+                    users[UsersTable.imageUrl] = usersImage
                     users[UsersTable.fullName] = fullName
+                    users[UsersTable.profile] = ""
+                    users[UsersTable.createdAt] = currentTime
+                    users[UsersTable.updatedAt] = currentTime
                 }
             }
 
@@ -100,6 +106,28 @@ class UsersRepositoryImpl : UsersDao {
                     val storedPassword = row[UsersTable.password]
                     if (PasswordService.verifyPassword(password, storedPassword)) {
                         SecurityLogger.logLoginAttempt(email, true, null)
+
+                        if (PasswordService.isLegacyPassword(storedPassword)) {
+                            try {
+                                // password to BCrypt
+                                val newBcryptHash = PasswordService.hashPassword(password)
+                                UsersTable.update({ UsersTable.email eq email }) { user ->
+                                    user[UsersTable.password] = newBcryptHash
+                                    user[UsersTable.updatedAt] =
+                                        System.currentTimeMillis().toString()
+                                }
+                                AppLogger.info(
+                                    "Migrated password from PBKDF2 to BCrypt for user: {}",
+                                    email
+                                )
+                            } catch (e: Exception) {
+                                AppLogger.error(
+                                    "Failed to migrate password to BCrypt for user: $email",
+                                    e
+                                )
+                            }
+                        }
+
                         rowToResponse(row)
                     } else {
                         SecurityLogger.logLoginAttempt(email, false, null)
@@ -163,12 +191,14 @@ class UsersRepositoryImpl : UsersDao {
         phoneNumber: String
     ): Int {
         return try {
+            val currentTime = System.currentTimeMillis().toString()
             DatabaseFactory.dbQuery {
                 UsersTable.update({ UsersTable.id.eq(id) }) { user ->
                     user[UsersTable.username] = username
                     user[UsersTable.email] = email
                     user[UsersTable.fullName] = fullName
                     user[UsersTable.phoneNumber] = phoneNumber
+                    user[UsersTable.updatedAt] = currentTime
                 }
             }
         } catch (e: Exception) {
@@ -179,9 +209,11 @@ class UsersRepositoryImpl : UsersDao {
 
     override suspend fun updateUserImage(id: Long, usersImage: String): Int {
         return try {
+            val currentTime = System.currentTimeMillis().toString()
             DatabaseFactory.dbQuery {
                 UsersTable.update({ UsersTable.id.eq(id) }) { user ->
-                    user[UsersTable.userImage] = usersImage
+                    user[UsersTable.imageUrl] = usersImage
+                    user[UsersTable.updatedAt] = currentTime
                 }
             }
         } catch (e: Exception) {
@@ -201,6 +233,7 @@ class UsersRepositoryImpl : UsersDao {
     ): Int {
         return try {
             val hashedPassword = PasswordService.hashPassword(password)
+            val currentTime = System.currentTimeMillis().toString()
             DatabaseFactory.dbQuery {
                 UsersTable.update({ UsersTable.id.eq(id) }) { user ->
                     user[UsersTable.username] = username
@@ -208,7 +241,8 @@ class UsersRepositoryImpl : UsersDao {
                     user[UsersTable.password] = hashedPassword
                     user[UsersTable.fullName] = fullName
                     user[UsersTable.phoneNumber] = phoneNumber
-                    user[UsersTable.userImage] = userImage
+                    user[UsersTable.imageUrl] = userImage
+                    user[UsersTable.updatedAt] = currentTime
                 }
             }
         } catch (e: Exception) {

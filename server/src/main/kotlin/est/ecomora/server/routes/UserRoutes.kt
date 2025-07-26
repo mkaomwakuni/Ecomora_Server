@@ -1,13 +1,14 @@
 package est.ecomora.server.routes
 
 import est.ecomora.server.domain.model.login.ErrorResponse
+import est.ecomora.server.domain.model.login.LoginRequest
 import est.ecomora.server.domain.model.login.LoginResponse
+import est.ecomora.server.domain.model.login.RegisterRequest
 import est.ecomora.server.domain.model.login.SuccessResponse
 import est.ecomora.server.domain.repository.users.UsersRepositoryImpl
 import est.ecomora.server.domain.service.JwtService
 import est.ecomora.server.plugins.AppLogger
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.Parameters
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -20,45 +21,67 @@ fun Route.userRoutes(db: UsersRepositoryImpl) {
     
     route("/api/v1/auth") {
         post("/register") {
-            val parameters = call.receive<Parameters>()
-            val email = parameters["email"]
-            val password = parameters["password"]
-            val userName = parameters["userName"]
-            val fullName = parameters["fullName"]
-            val phoneNumber = parameters["phoneNumber"]
-            val userRole = parameters["userRole"] ?: "user"
-            val userImage = parameters["imageUrl"] ?: ""
-
-            // Basic validation
-            if (email.isNullOrBlank()) {
-                call.respond(HttpStatusCode.BadRequest, ErrorResponse("Email is required"))
-                return@post
-            }
-            if (password.isNullOrBlank()) {
-                call.respond(HttpStatusCode.BadRequest, ErrorResponse("Password is required"))
-                return@post
-            }
-            if (userName.isNullOrBlank()) {
-                call.respond(HttpStatusCode.BadRequest, ErrorResponse("Username is required"))
-                return@post
-            }
-
             try {
+                // Try to receive as JSON first, fallback to form data
+                val request = try {
+                    call.receive<RegisterRequest>()
+                } catch (e: Exception) {
+                    // Fallback to form data parsing
+                    try {
+                        val parameters = call.receive<io.ktor.http.Parameters>()
+                        RegisterRequest(
+                            email = parameters["email"] ?: "",
+                            password = parameters["password"] ?: "",
+                            userName = parameters["userName"] ?: "",
+                            fullName = parameters["fullName"],
+                            phoneNumber = parameters["phoneNumber"],
+                            userRole = parameters["userRole"] ?: "user",
+                            imageUrl = parameters["imageUrl"]
+                        )
+                    } catch (formException: Exception) {
+                        AppLogger.error("Failed to parse both JSON and form data", e)
+                        call.respond(
+                            HttpStatusCode.BadRequest,
+                            ErrorResponse("Invalid request format. Expected JSON with email, password, userName fields")
+                        )
+                        return@post
+                    }
+                }
+
+                // Basic validation
+                if (request.email.isBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Email is required"))
+                    return@post
+                }
+                if (request.password.isBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Password is required"))
+                    return@post
+                }
+                if (request.userName.isBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Username is required"))
+                    return@post
+                }
+
                 val user = db.insertUser(
-                    userName,
-                    password,
-                    email,
-                    phoneNumber ?: "",
-                    userRole,
-                    userImage,
-                    fullName ?: ""
+                    request.userName,
+                    request.password,
+                    request.email,
+                    request.phoneNumber ?: "",
+                    request.userRole,
+                    request.imageUrl ?: "",
+                    request.fullName ?: ""
                 )
                 
                 user?.let {
-                    AppLogger.info("New user registered: {}", email)
+                    AppLogger.info("New user registered: {}", request.email)
                     call.respond(
                         HttpStatusCode.Created,
                         SuccessResponse("User registered successfully", user)
+                    )
+                } ?: run {
+                    call.respond(
+                        HttpStatusCode.InternalServerError,
+                        ErrorResponse("Failed to create user")
                     )
                 }
             } catch (e: Exception) {
@@ -71,25 +94,42 @@ fun Route.userRoutes(db: UsersRepositoryImpl) {
         }
 
         post("/login") {
-            val parameters = call.receive<Parameters>()
-            val email = parameters["email"]
-            val password = parameters["password"]
-
-            if (email.isNullOrBlank()) {
-                call.respond(HttpStatusCode.BadRequest, ErrorResponse("Email is required"))
-                return@post
-            }
-            if (password.isNullOrBlank()) {
-                call.respond(HttpStatusCode.BadRequest, ErrorResponse("Password is required"))
-                return@post
-            }
-
             try {
-                val user = db.login(email, password)
+                // Try to receive as JSON first, fallback to form data
+                val request = try {
+                    call.receive<LoginRequest>()
+                } catch (e: Exception) {
+                    // Fallback to form data parsing
+                    try {
+                        val parameters = call.receive<io.ktor.http.Parameters>()
+                        LoginRequest(
+                            email = parameters["email"] ?: "",
+                            password = parameters["password"] ?: ""
+                        )
+                    } catch (formException: Exception) {
+                        AppLogger.error("Failed to parse both JSON and form data", e)
+                        call.respond(
+                            HttpStatusCode.BadRequest,
+                            ErrorResponse("Invalid request format. Expected JSON: {\"email\":\"...\", \"password\":\"...\"}")
+                        )
+                        return@post
+                    }
+                }
+
+                if (request.email.isBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Email is required"))
+                    return@post
+                }
+                if (request.password.isBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Password is required"))
+                    return@post
+                }
+
+                val user = db.login(request.email, request.password)
                 
                 if (user != null) {
                     val token = JwtService.generateToken(user.id.toString(), user.userRole)
-                    AppLogger.info("Successful login for user: {}", email)
+                    AppLogger.info("Successful login for user: {}", request.email)
                     
                     val loginResponse = LoginResponse(
                         message = "Login successful",
@@ -98,7 +138,7 @@ fun Route.userRoutes(db: UsersRepositoryImpl) {
                     )
                     call.respond(HttpStatusCode.OK, loginResponse)
                 } else {
-                    AppLogger.warn("Failed login attempt for user: {}", email)
+                    AppLogger.warn("Failed login attempt for user: {}", request.email)
                     call.respond(
                         HttpStatusCode.Unauthorized,
                         ErrorResponse("Invalid email or password")
