@@ -1,15 +1,20 @@
 package est.ecomora.server.domain.repository.sales
 
+
 import est.ecomora.server.data.local.table.DatabaseFactory
-import est.ecomora.server.data.local.table.sales.SalesTable
 import est.ecomora.server.data.local.table.products.ProductsTable
+import est.ecomora.server.data.local.table.sales.SalesTable
 import est.ecomora.server.data.local.table.services.EservicesTable
-import est.ecomora.server.data.local.table.prints.PrintsTable
 import est.ecomora.server.data.repository.sales.SalesDao
 import est.ecomora.server.domain.model.sales.Sale
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.statements.InsertStatement
+import org.jetbrains.exposed.sql.sum
+import org.jetbrains.exposed.sql.update
 
 class SalesRepositoryImpl : SalesDao {
     
@@ -28,22 +33,20 @@ class SalesRepositoryImpl : SalesDao {
         var saleResult: InsertStatement<Number>? = null
         
         DatabaseFactory.dbQuery {
-            // Update stock/counts based on item type
             when (itemType.lowercase()) {
                 "product" -> {
-                    // Get current values first
+
                     val currentProduct = ProductsTable.select { ProductsTable.id eq itemId }.single()
                     val currentStock = currentProduct[ProductsTable.totalStock]
                     val currentSold = currentProduct[ProductsTable.sold]
-                    
-                    // Update product stock and sold count
+
                     ProductsTable.update({ ProductsTable.id eq itemId }) { product ->
                         product[totalStock] = currentStock - quantity.toLong()
                         product[sold] = currentSold + quantity.toLong()
                     }
                 }
                 "service" -> {
-                    // Get current value first
+
                     val currentService = EservicesTable.select { EservicesTable.id eq itemId }.single()
                     val currentOffered = currentService[EservicesTable.offered]
                     
@@ -52,19 +55,8 @@ class SalesRepositoryImpl : SalesDao {
                         service[offered] = currentOffered + quantity.toLong()
                     }
                 }
-                "print" -> {
-                    // Get current value first
-                    val currentPrint = PrintsTable.select { PrintsTable.id eq itemId }.single()
-                    val currentCopies = currentPrint[PrintsTable.copies]
-                    
-                    // Update print copies count
-                    PrintsTable.update({ PrintsTable.id eq itemId }) { print ->
-                        print[copies] = currentCopies - quantity
-                    }
-                }
             }
-            
-            // Insert the sale record
+
             saleResult = SalesTable.insert { sale ->
                 sale[SalesTable.userId] = userId
                 sale[SalesTable.itemId] = itemId

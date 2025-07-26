@@ -22,4 +22,5 @@ data class Product (
     val sold: Long = 0,
     val isFeatured: Boolean,
     val color: String,
+    val userId: Long,
 )

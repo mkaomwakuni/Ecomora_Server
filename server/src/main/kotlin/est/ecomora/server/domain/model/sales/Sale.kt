@@ -7,7 +7,7 @@ data class Sale(
     val id: Long,
     val userId: Int,
     val itemId: Long,
-    val itemType: String, // "product", "service", or "print"
+    val itemType: String,
     val itemName: String,
     val quantity: Int,
     val unitPrice: Long,

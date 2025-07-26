@@ -4,13 +4,13 @@ package est.ecomora.server.data.local.table.products
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
 
-
 object ProductsTable: Table ("Products") {
     val id: Column<Long> = long("id").autoIncrement()
+    val userId: Column<Long> = long("userid").index()
     val name: Column<String> = varchar("name", length = 1000)
     val description: Column<String> = varchar("description", length = 1000)
     val price: Column<Long> = long("price")
-    val imageUrl: Column<String> = varchar("imageUrl", length = 255)
+    val imageUrl: Column<String> = varchar("imageurl", length = 255)
     val categoryName: Column<String> = varchar("category_name", length = 500)
     val categoryId: Column<Long> = long("category_id")
     val createdDate: Column<String> = varchar("created_date", length = 500)

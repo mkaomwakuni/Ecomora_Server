@@ -15,6 +15,7 @@ import org.jetbrains.exposed.sql.update
 
 class PromotionsRepositoryImpl: PromotionDao {
     override suspend fun insertPromo(
+        userId: Long,
         title: String,
         description: String,
         imageUrl: String,
@@ -25,6 +26,7 @@ class PromotionsRepositoryImpl: PromotionDao {
         var arguments: InsertStatement<Number>? = null
         DatabaseFactory.dbQuery {
             arguments = PromotionTable.insert { promotion ->
+                promotion[PromotionTable.userId] = userId
                 promotion[PromotionTable.title] = title
                 promotion[PromotionTable.description] = description
                 promotion[PromotionTable.imageUrl] = imageUrl
@@ -38,15 +40,17 @@ class PromotionsRepositoryImpl: PromotionDao {
 
     override suspend fun updatePromo(
         id: Long,
+        userId: Long,
         title: String,
         description: String,
         imageUrl: String,
         startDate: Long,
         endDate: Long,
         enabled: Boolean
-    ) {
+    ): Promotions? {
         DatabaseFactory.dbQuery {
             PromotionTable.update({ PromotionTable.id eq id }) {
+                it[PromotionTable.userId] = userId
                 it[PromotionTable.title] = title
                 it[PromotionTable.description] = description
                 it[PromotionTable.imageUrl] = imageUrl
@@ -55,6 +59,7 @@ class PromotionsRepositoryImpl: PromotionDao {
                 it[PromotionTable.enabled] = enabled
             }
         }
+        return getPromotionById(id)
     }
 
     override suspend fun getAllPromotions(): List<Promotions>? {
@@ -92,7 +97,8 @@ class PromotionsRepositoryImpl: PromotionDao {
                 imageUrl = row[PromotionTable.imageUrl],
                 startDate = row[PromotionTable.startDate],
                 endDate = row[PromotionTable.endDate],
-                enabled = row[PromotionTable.enabled]
+                enabled = row[PromotionTable.enabled],
+                userId = row[PromotionTable.userId]
             )
         }
     }

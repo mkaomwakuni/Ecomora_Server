@@ -4,6 +4,7 @@ import est.ecomora.server.domain.model.promotions.Promotions
 
 interface PromotionDao {
     suspend fun insertPromo(
+        userId: Long,
         title: String,
         description: String,
         imageUrl: String,
@@ -14,13 +15,14 @@ interface PromotionDao {
 
     suspend fun updatePromo(
         id: Long,
+        userId: Long,
         title: String,
         description: String,
         imageUrl: String,
         startDate: Long,
         endDate: Long,
         enabled: Boolean
-    )
+    ): Promotions?
 
     suspend fun getAllPromotions(): List<Promotions>?
     suspend fun getPromotionById(id: Long): Promotions?

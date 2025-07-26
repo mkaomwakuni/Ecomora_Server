@@ -21,15 +21,16 @@ interface ProductDao {
         productRating: Double,
         color: String,
         sold: Long,
-        isFeatured: Boolean
+        isFeatured: Boolean,
+        userId: Long
     ): Product?
 
-    suspend fun getAllProduct(): List<Product>?
-    suspend fun getProductsByIds(ids: List<Long>): List<Product>?
-    suspend fun getProductById(id: Long): Product?
-    suspend fun deleteProductById(id: Long): Int?
+    suspend fun getAllProductsByUserId(userId: Long): List<Product>?
+    suspend fun getProductsByIds(ids: List<Long>, userId: Long): List<Product>?
+    suspend fun getProductById(id: Long, userId: Long): Product?
+    suspend fun deleteProductById(id: Long, userId: Long): Int?
 
-    suspend fun getProductsByMultipleIds(ids: List<Long>): List<Product>?
+    suspend fun getProductsByMultipleIds(ids: List<Long>, userId: Long): List<Product>?
 
     suspend fun updateProductById(
         id: Long,
@@ -49,6 +50,9 @@ interface ProductDao {
         promotion: String,
         productRating: Double,
         color: String,
-        isFeatured: Boolean
+        isFeatured: Boolean,
+        userId: Long
     ): Int?
+
+    suspend fun updateSoldCounter(productId: Long, quantity: Long, userId: Long): Int?
 }

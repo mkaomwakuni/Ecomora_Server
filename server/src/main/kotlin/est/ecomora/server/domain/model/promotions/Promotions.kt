@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Promotions (
     val id: Long,
+    val userId: Long,
     val title: String,
     val description: String,
     val enabled: Boolean,
