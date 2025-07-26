@@ -5,6 +5,7 @@ import est.ecomora.server.data.local.table.DatabaseFactory
 import est.ecomora.server.data.local.table.category.CategoriesTable
 import est.ecomora.server.data.repository.category.CategoriesDao
 import est.ecomora.server.domain.model.category.Categories
+import est.ecomora.server.domain.model.category.CategoryType
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
@@ -19,16 +20,18 @@ class CategoriesRepositoryImpl: CategoriesDao {
         name: String,
         description: String,
         isVisible: Boolean,
-        imageUrl: String
+        imageUrl: String?,
+        categoryType: CategoryType
     ): Categories? {
         var arguments: InsertStatement<Number>? = null
         DatabaseFactory.dbQuery {
             arguments = CategoriesTable.insert{ category ->
                 category[CategoriesTable.name] = name
                 category[CategoriesTable.description] = description
-                category[CategoriesTable.productCount] = 0L // Initialize with 0 products
+                category[CategoriesTable.productCount] = 0L
                 category[CategoriesTable.isVisible] = isVisible
                 category[CategoriesTable.imageUrl] = imageUrl
+                category[CategoriesTable.categoryType] = categoryType.name
             }
         }
         return rowToResponse(arguments?.resultedValues?.get(0)!!)
@@ -48,7 +51,16 @@ class CategoriesRepositoryImpl: CategoriesDao {
             CategoriesTable.select(CategoriesTable.id.eq(id))
                 .map {
                     rowToResponse(it)
-                }.single()
+                }.singleOrNull()
+        }
+    }
+
+    override suspend fun getCategoryByName(name: String): Categories? {
+        return DatabaseFactory.dbQuery {
+            CategoriesTable.select(CategoriesTable.name.eq(name))
+                .map {
+                    rowToResponse(it)
+                }.singleOrNull()
         }
     }
 
@@ -65,7 +77,8 @@ class CategoriesRepositoryImpl: CategoriesDao {
         name: String,
         description: String,
         isVisible: Boolean,
-        imageUrl: String
+        imageUrl: String?,
+        categoryType: CategoryType
     ): Int? {
         return DatabaseFactory.dbQuery {
             CategoriesTable.update({ CategoriesTable.id.eq(id) }) { category ->
@@ -74,6 +87,7 @@ class CategoriesRepositoryImpl: CategoriesDao {
                 category[CategoriesTable.description] = description
                 category[CategoriesTable.isVisible] = isVisible
                 category[CategoriesTable.imageUrl] = imageUrl
+                category[CategoriesTable.categoryType] = categoryType.name
             }
         }
     }
@@ -85,7 +99,8 @@ class CategoriesRepositoryImpl: CategoriesDao {
             description = row[CategoriesTable.description],
             productCount = row[CategoriesTable.productCount],
             isVisible = row[CategoriesTable.isVisible],
-            imageUrl = row[CategoriesTable.imageUrl]
+            imageUrl = row[CategoriesTable.imageUrl],
+            categoryType = CategoryType.valueOf(row[CategoriesTable.categoryType])
         )
     }
 }
