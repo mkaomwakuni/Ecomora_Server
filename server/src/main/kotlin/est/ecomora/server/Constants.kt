@@ -11,20 +11,12 @@ val IS_PRODUCTION = System.getenv("ENV") == "production" ||
 
 // Database configuration - flexible for cloud platforms
 val DB_URL = run {
-    // Try multiple possible database URL environment variable names
-    val possibleEnvVars = listOf(
-        "DATABASE_URL",
-        "POSTGRES_URL", 
-        "POSTGRESQL_URL",
-        "DB_URL",
-        "JDBC_DATABASE_URL"
-    )
-    
-    val databaseUrl = possibleEnvVars.firstNotNullOfOrNull { System.getenv(it) }
+    // Try to get DATABASE_URL directly first
+    val databaseUrl = System.getenv("DATABASE_URL")
     
     when {
         databaseUrl != null -> {
-            println("Found database URL in environment variable")
+            println("Found DATABASE_URL in environment variable")
             // Handle Render's postgres:// format by converting to jdbc:postgresql://
             if (databaseUrl.startsWith("postgres://")) {
                 databaseUrl.replace("postgres://", "jdbc:postgresql://")
@@ -32,7 +24,17 @@ val DB_URL = run {
                 databaseUrl
             }
         }
-        // Only fallback to localhost in development
+        // Create a fallback URL using Render's internal database networking
+        IS_PRODUCTION && System.getenv("databaseName") != null -> {
+            val dbName = System.getenv("databaseName") ?: "ecomora_db"
+            val dbUser = System.getenv("user") ?: "ecomora_user"
+            
+            // Use Render's internal database service name
+            val fallbackUrl = "jdbc:postgresql://ecomora-db:5432/$dbName"
+            println("Using fallback database URL for Render: $fallbackUrl")
+            fallbackUrl
+        }
+        // Development fallback
         !IS_PRODUCTION -> "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
         else -> {
             println("ERROR: DATABASE_URL not found in production environment")
