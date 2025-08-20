@@ -26,9 +26,9 @@ val DB_URL = run {
         }
         // For production, use DATABASE_URL from environment or secret files
         IS_PRODUCTION -> {
-            // Fallback to internal connection if DATABASE_URL not available
-            val fallbackUrl = "jdbc:postgresql://dpg-d2iqj3je5dus73ba5bd0-a:5432/ecomora_db"
-            println("Using fallback database URL for Render: $fallbackUrl")
+            // Use external database URL (required for Render web service to database connection)
+            val fallbackUrl = "jdbc:postgresql://dpg-d2iqj3je5dus73ba5bd0-a.oregon-postgres.render.com:5432/ecomora_db"
+            println("Using external database URL for Render: $fallbackUrl")
             fallbackUrl
         }
         // Development fallback
@@ -45,7 +45,7 @@ val DB_URL = run {
 }
 
 val DB_USERNAME = System.getenv("DB_USERNAME") ?: System.getenv("POSTGRES_USER") ?: "ecomora_user"
-val DB_PASSWORD = System.getenv("DB_PASSWORD") ?: System.getenv("POSTGRES_PASSWORD") ?: "fallback_password"
+val DB_PASSWORD = System.getenv("DB_PASSWORD") ?: System.getenv("POSTGRES_PASSWORD") ?: "q8e40J52nfQyv5cWwqO6aB1Q31mjAK1Q"
 
 // Static files configuration
 val STATIC_FILE_ROOT = System.getenv("STATIC_FILE_ROOT") ?: "/app/uploads"
