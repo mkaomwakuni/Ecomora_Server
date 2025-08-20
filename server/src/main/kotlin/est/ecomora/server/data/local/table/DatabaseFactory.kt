@@ -116,7 +116,10 @@ object DatabaseFactory {
         config.leakDetectionThreshold = 60000 // 1 minute
 
         config.isAutoCommit = false
-        config.transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+        // Only set transaction isolation for H2 (development), PostgreSQL handles this differently
+        if (!IS_PRODUCTION) {
+            config.transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+        }
         config.poolName = "EcomoraHikariPool"
 
         // Connection validation
