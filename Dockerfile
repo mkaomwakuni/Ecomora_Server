@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 # Copy Gradle wrapper and build files
 COPY gradlew gradlew.bat ./
 COPY gradle/ gradle/
-COPY build.gradle.kts settings.gradle.kts ./
+COPY build.gradle.kts settings.gradle.kts gradle.properties ./
 COPY server/build.gradle.kts ./server/
 
 # Copy source code
