@@ -81,6 +81,13 @@ object DatabaseFactory {
     private fun hikariDataSource(): HikariDataSource {
         val config = HikariConfig()
 
+        // Debug environment variables
+        AppLogger.info("Environment debugging:")
+        AppLogger.info("ENV = '${System.getenv("ENV")}'")
+        AppLogger.info("IS_PRODUCTION = $IS_PRODUCTION")
+        AppLogger.info("DATABASE_URL = '${System.getenv("DATABASE_URL")}'")
+        AppLogger.info("DB_URL = '$DB_URL'")
+
         if (IS_PRODUCTION) {
             // Production: PostgreSQL configuration
             config.driverClassName = "org.postgresql.Driver"

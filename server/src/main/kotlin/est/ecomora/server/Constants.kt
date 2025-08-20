@@ -22,5 +22,7 @@ val STATIC_FILE_ROOT = System.getenv("STATIC_FILE_ROOT") ?: "/app/uploads"
 val UPLOAD_DIR = System.getenv("UPLOAD_DIR") ?: "${System.getProperty("user.home")}/uploads"
 
 // Application environment
-val IS_PRODUCTION = System.getenv("ENV") == "production"
+val IS_PRODUCTION = System.getenv("ENV") == "production" || 
+                   System.getenv("DATABASE_URL") != null ||
+                   System.getenv("RENDER") != null
 val APP_VERSION = System.getenv("APP_VERSION") ?: "1.0.0"
