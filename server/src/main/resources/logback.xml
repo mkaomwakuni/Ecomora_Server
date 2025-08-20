@@ -6,7 +6,8 @@
         </encoder>
     </appender>
 
-    <!-- File appender for production -->
+    <!-- File appender disabled for cloud deployment -->
+    <!-- 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/ecomora-server.log</file>
         <encoder>
@@ -19,6 +20,7 @@
             <totalSizeCap>1GB</totalSizeCap>
         </rollingPolicy>
     </appender>
+    -->
 
     <!-- Error file appender -->
     <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -39,20 +41,11 @@
         </rollingPolicy>
     </appender>
 
-    <!-- Environment-specific configuration -->
-    <if condition='property("ENV").equals("production")'>
-        <then>
-            <root level="INFO">
-                <appender-ref ref="STDOUT" />
-                <appender-ref ref="ERROR_FILE" />
-            </root>
-        </then>
-        <else>
-            <root level="DEBUG">
-                <appender-ref ref="STDOUT" />
-            </root>
-        </else>
-    </if>
+    <!-- Default configuration -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="ERROR_FILE"/>
+    </root>
 
     <!-- Library logging levels -->
     <logger name="org.eclipse.jetty" level="INFO"/>

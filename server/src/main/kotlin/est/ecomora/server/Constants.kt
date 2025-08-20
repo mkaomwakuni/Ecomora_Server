@@ -4,15 +4,31 @@ package est.ecomora.server
 val SERVER_PORT = System.getenv("PORT")?.toIntOrNull() ?: 8080
 val SERVER_HOST = System.getenv("HOST") ?: "0.0.0.0"
 
+// Application environment - must be defined before DB_URL
+val IS_PRODUCTION = System.getenv("ENV") == "production" || 
+                   System.getenv("DATABASE_URL") != null ||
+                   System.getenv("RENDER") != null
+
 // Database configuration - flexible for cloud platforms
-val DB_URL = System.getenv("DATABASE_URL")?.let { url ->
-    if (url.startsWith("postgres://")) {
-        url.replace("postgres://", "jdbc:postgresql://")
-    } else {
-        url
+val DB_URL = run {
+    val databaseUrl = System.getenv("DATABASE_URL")
+    val jdbcUrl = System.getenv("JDBC_DATABASE_URL")
+    
+    when {
+        databaseUrl != null -> {
+            // Handle Render's postgres:// format by converting to jdbc:postgresql://
+            if (databaseUrl.startsWith("postgres://")) {
+                databaseUrl.replace("postgres://", "jdbc:postgresql://")
+            } else {
+                databaseUrl
+            }
+        }
+        jdbcUrl != null -> jdbcUrl
+        // Only fallback to localhost in development
+        !IS_PRODUCTION -> "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+        else -> throw IllegalStateException("DATABASE_URL not found in production environment")
     }
-} ?: System.getenv("JDBC_DATABASE_URL") 
-?: "jdbc:postgresql://localhost:5432/ecomora_db"
+}
 
 val DB_USERNAME = System.getenv("DB_USERNAME") ?: System.getenv("POSTGRES_USER") ?: "postgres"
 val DB_PASSWORD = System.getenv("DB_PASSWORD") ?: System.getenv("POSTGRES_PASSWORD") ?: "password"
@@ -21,8 +37,4 @@ val DB_PASSWORD = System.getenv("DB_PASSWORD") ?: System.getenv("POSTGRES_PASSWO
 val STATIC_FILE_ROOT = System.getenv("STATIC_FILE_ROOT") ?: "/app/uploads"
 val UPLOAD_DIR = System.getenv("UPLOAD_DIR") ?: "${System.getProperty("user.home")}/uploads"
 
-// Application environment
-val IS_PRODUCTION = System.getenv("ENV") == "production" || 
-                   System.getenv("DATABASE_URL") != null ||
-                   System.getenv("RENDER") != null
 val APP_VERSION = System.getenv("APP_VERSION") ?: "1.0.0"
