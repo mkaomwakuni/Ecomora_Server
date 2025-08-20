@@ -26,7 +26,14 @@ val DB_URL = run {
         jdbcUrl != null -> jdbcUrl
         // Only fallback to localhost in development
         !IS_PRODUCTION -> "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
-        else -> throw IllegalStateException("DATABASE_URL not found in production environment")
+        else -> {
+            println("ERROR: DATABASE_URL not found in production environment")
+            println("Available environment variables:")
+            System.getenv().entries.filter { it.key.contains("DATABASE", ignoreCase = true) || it.key.contains("POSTGRES", ignoreCase = true) }.forEach {
+                println("${it.key} = ${it.value}")
+            }
+            throw IllegalStateException("DATABASE_URL not found in production environment")
+        }
     }
 }
 
