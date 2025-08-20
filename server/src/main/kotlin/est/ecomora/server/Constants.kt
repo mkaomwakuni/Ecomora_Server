@@ -11,11 +11,20 @@ val IS_PRODUCTION = System.getenv("ENV") == "production" ||
 
 // Database configuration - flexible for cloud platforms
 val DB_URL = run {
-    val databaseUrl = System.getenv("DATABASE_URL")
-    val jdbcUrl = System.getenv("JDBC_DATABASE_URL")
+    // Try multiple possible database URL environment variable names
+    val possibleEnvVars = listOf(
+        "DATABASE_URL",
+        "POSTGRES_URL", 
+        "POSTGRESQL_URL",
+        "DB_URL",
+        "JDBC_DATABASE_URL"
+    )
+    
+    val databaseUrl = possibleEnvVars.firstNotNullOfOrNull { System.getenv(it) }
     
     when {
         databaseUrl != null -> {
+            println("Found database URL in environment variable")
             // Handle Render's postgres:// format by converting to jdbc:postgresql://
             if (databaseUrl.startsWith("postgres://")) {
                 databaseUrl.replace("postgres://", "jdbc:postgresql://")
@@ -23,14 +32,13 @@ val DB_URL = run {
                 databaseUrl
             }
         }
-        jdbcUrl != null -> jdbcUrl
         // Only fallback to localhost in development
         !IS_PRODUCTION -> "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
         else -> {
             println("ERROR: DATABASE_URL not found in production environment")
             println("Available environment variables:")
-            System.getenv().entries.filter { it.key.contains("DATABASE", ignoreCase = true) || it.key.contains("POSTGRES", ignoreCase = true) }.forEach {
-                println("${it.key} = ${it.value}")
+            System.getenv().entries.forEach { (key, value) ->
+                println("$key = $value")
             }
             throw IllegalStateException("DATABASE_URL not found in production environment")
         }
