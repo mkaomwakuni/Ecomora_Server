@@ -16,8 +16,8 @@ COPY server/build.gradle.kts ./server/
 # Copy source code
 COPY server/src/ ./server/src/
 
-# Build the application
-RUN ./gradlew :server:shadowJar --no-daemon
+# Make gradlew executable and build the application
+RUN chmod +x ./gradlew && ./gradlew :server:shadowJar --no-daemon
 
 # Create user for running the application
 RUN groupadd -r ecomora && useradd -r -g ecomora ecomora
