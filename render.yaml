@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: ecomora-server
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: ENV
+        value: production
+      - key: PORT
+        value: 8080
+      - key: HOST
+        value: 0.0.0.0
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_AUDIENCE
+        value: ecomora-api
+      - key: JWT_DOMAIN
+        value: https://ecomora-server.onrender.com/
+      - key: JWT_REALM
+        value: ecomora server
+      - key: JWT_EXPIRATION_HOURS
+        value: 24
+      - key: UPLOAD_DIR
+        value: /app/uploads
+      - key: STATIC_FILE_ROOT
+        value: /app
+    healthCheckPath: /health
+
+databases:
+  - name: ecomora-postgres
+    plan: starter
+    databaseName: ecomora_db
+    user: ecomora_user

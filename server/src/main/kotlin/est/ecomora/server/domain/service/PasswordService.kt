@@ -52,7 +52,7 @@ object PasswordService {
         }
     }
 
-    fun isLegacyassword(hashedPassword: String): Boolean {
+    fun isLegacyPassword(hashedPassword: String): Boolean {
         return hashedPassword.contains(":") && hashedPassword.split(":").size == 2
     }
 }

@@ -5,8 +5,15 @@ val SERVER_PORT = System.getenv("PORT")?.toIntOrNull() ?: 8080
 val SERVER_HOST = System.getenv("HOST") ?: "0.0.0.0"
 
 // Database configuration - flexible for cloud platforms
-val DB_URL = System.getenv("DATABASE_URL") ?: System.getenv("JDBC_DATABASE_URL")
+val DB_URL = System.getenv("DATABASE_URL")?.let { url ->
+    if (url.startsWith("postgres://")) {
+        url.replace("postgres://", "jdbc:postgresql://")
+    } else {
+        url
+    }
+} ?: System.getenv("JDBC_DATABASE_URL") 
 ?: "jdbc:postgresql://localhost:5432/ecomora_db"
+
 val DB_USERNAME = System.getenv("DB_USERNAME") ?: System.getenv("POSTGRES_USER") ?: "postgres"
 val DB_PASSWORD = System.getenv("DB_PASSWORD") ?: System.getenv("POSTGRES_PASSWORD") ?: "password"
 

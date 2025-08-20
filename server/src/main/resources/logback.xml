@@ -40,24 +40,19 @@
     </appender>
 
     <!-- Environment-specific configuration -->
-    <springProfile name="production">
-        <root level="INFO">
-            <appender-ref ref="FILE" />
-            <appender-ref ref="ERROR_FILE" />
-        </root>
-    </springProfile>
-
-    <springProfile name="!production">
-        <root level="DEBUG">
-            <appender-ref ref="STDOUT" />
-            <appender-ref ref="FILE" />
-        </root>
-    </springProfile>
-
-    <!-- Default configuration if no profile is active -->
-    <root level="INFO">
-        <appender-ref ref="STDOUT"/>
-    </root>
+    <if condition='property("ENV").equals("production")'>
+        <then>
+            <root level="INFO">
+                <appender-ref ref="STDOUT" />
+                <appender-ref ref="ERROR_FILE" />
+            </root>
+        </then>
+        <else>
+            <root level="DEBUG">
+                <appender-ref ref="STDOUT" />
+            </root>
+        </else>
+    </if>
 
     <!-- Library logging levels -->
     <logger name="org.eclipse.jetty" level="INFO"/>
