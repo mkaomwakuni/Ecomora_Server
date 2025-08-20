@@ -2,9 +2,7 @@ package est.ecomora.server.domain.model.users
 
 import kotlinx.serialization.Serializable
 
-/**
- * Represents a user in the Ecomora system.
- */
+// User model
 @Serializable
 data class Users (
     val id : Long,

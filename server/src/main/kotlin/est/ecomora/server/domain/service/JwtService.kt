@@ -20,12 +20,7 @@ object JwtService {
     // verifier property for authentication configuration
     val verifier: JWTVerifier = jwtVerifier
 
-    /**
-     * Generates a JWT token for a user
-     * @param userId The user ID to include in the token
-     * @param userRole The user role to include in the token
-     * @return The generated JWT token
-     */
+    // Generate JWT token
     fun generateToken(userId: String, userRole: String): String {
         val expirationDate = System.currentTimeMillis() + SecurityConfig.jwtExpirationTime
         return JWT.create()
@@ -37,11 +32,7 @@ object JwtService {
             .sign(Algorithm.HMAC256(SecurityConfig.jwtSecret))
     }
 
-    /**
-     * Validates a JWT token and returns the payload
-     * @param token The JWT token to validate
-     * @return The payload if valid, null otherwise
-     */
+    // Validate JWT token
     fun validateToken(token: String): Payload? {
         return try {
             jwtVerifier.verify(token)
@@ -54,20 +45,12 @@ object JwtService {
         }
     }
 
-    /**
-     * Extracts user ID from a JWT token
-     * @param token The JWT token
-     * @return The user ID if valid, null otherwise
-     */
+    // Extract user ID from token
     fun getUserIdFromToken(token: String): String? {
         return validateToken(token)?.subject
     }
 
-    /**
-     * Extracts user role from a JWT token
-     * @param token The JWT token
-     * @return The user role if valid, null otherwise
-     */
+    // Extract user role from token
     fun getUserRoleFromToken(token: String): String? {
         return validateToken(token)?.getClaim("role")?.asString()
     }

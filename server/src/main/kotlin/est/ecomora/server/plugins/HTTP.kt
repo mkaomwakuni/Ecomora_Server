@@ -8,14 +8,7 @@ import io.ktor.server.plugins.cachingheaders.*
 import io.ktor.server.plugins.defaultheaders.*
 import io.ktor.server.request.uri
 
-/**
- * Configures HTTP-related plugins for the Ktor application.
- *
- * This function sets up:
- * - Security headers
- * - Default headers with custom information
- * - Caching headers for static content
- */
+// HTTP security and headers
 fun Application.configureHTTP() {
     // Security headers
     install(DefaultHeaders) {

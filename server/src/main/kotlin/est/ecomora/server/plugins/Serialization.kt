@@ -1,9 +1,6 @@
 package est.ecomora.server.plugins
 
-/**
- * Configures JSON serialization settings using kotlinx.serialization library.
- * Provides a pre-configured [Json] instance with common serialization options.
- */
+// JSON serialization config
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install

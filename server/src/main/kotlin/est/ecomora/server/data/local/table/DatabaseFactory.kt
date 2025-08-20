@@ -21,20 +21,12 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 
-/**
- * Object responsible for setting up and managing the database connection using HikariCP and Exposed ORM.
- */
 object DatabaseFactory {
 
     private var dataSource: HikariDataSource? = null
     private var isInitialized = false
 
-    /**
-     * Initializes the database connection.
-     * - Connects to the database using the Hikari connection pool.
-     * - Creates tables if they don't exist.
-     * - Inserts test data for development.
-     */
+    // DB initialization entry point
     fun init() {
         if (isInitialized) {
             AppLogger.info("Database already initialized, skipping...")
@@ -42,16 +34,14 @@ object DatabaseFactory {
         }
 
         try {
-            // Create single HikariCP DataSource
+            // Setup HikariCP
             dataSource = hikariDataSource()
 
-            // Establish a single connection to the database
             Database.connect(dataSource!!)
             DatabaseLogger.logConnection("Connected to database successfully")
 
-            // Create tables and insert test data
+            // Schema creation
             transaction {
-                // Create all tables
                 SchemaUtils.create(
                     UsersTable,
                     CategoriesTable,
@@ -75,58 +65,50 @@ object DatabaseFactory {
     }
 
 
-    /**
-     * Configures and creates a HikariCP DataSource with production-ready settings.
-     */
+    // HikariCP configuration
     private fun hikariDataSource(): HikariDataSource {
         val config = HikariConfig()
 
-        // Debug environment variables
-        AppLogger.info("Environment debugging:")
-        AppLogger.info("ENV = '${System.getenv("ENV")}'")
-        AppLogger.info("IS_PRODUCTION = $IS_PRODUCTION")
-        AppLogger.info("DATABASE_URL = '${System.getenv("DATABASE_URL")}'")
-        AppLogger.info("DB_URL = '$DB_URL'")
+        // Environment check
+        AppLogger.info("ENV = '${System.getenv("ENV")}', IS_PRODUCTION = $IS_PRODUCTION, DB_URL = '$DB_URL'")
 
         if (IS_PRODUCTION) {
-            // Production: PostgreSQL configuration
+            // PostgreSQL
             config.driverClassName = "org.postgresql.Driver"
             config.jdbcUrl = DB_URL
             config.username = DB_USERNAME
             config.password = DB_PASSWORD
         } else {
-            // Development: use an embedded/file-based H2 database
-            // Path can be customised via H2_PATH env var, otherwise defaults to user-home directory
+            // H2 development DB
             val h2Path = System.getenv("H2_PATH")
                 ?: "${System.getProperty("user.home")}/ecomora/h2/ecomorah_db"
             config.driverClassName = "org.h2.Driver"
-            // Use PostgreSQL compatibility mode so that Exposed DDL remains similar
             config.jdbcUrl =
                 "jdbc:h2:file:$h2Path;AUTO_SERVER=TRUE;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE"
             config.username = "sa"
             config.password = ""
         }
 
-        // Common pool configuration
+        // Pool settings
         config.maximumPoolSize = if (IS_PRODUCTION) 20 else 10
         config.minimumIdle = if (IS_PRODUCTION) 5 else 2
-        config.idleTimeout = 300000 // 5 minutes
-        config.connectionTimeout = 20000 // 20 seconds
-        config.maxLifetime = 1800000 // 30 minutes
-        config.leakDetectionThreshold = 60000 // 1 minute
+        config.idleTimeout = 300000
+        config.connectionTimeout = 20000
+        config.maxLifetime = 1800000
+        config.leakDetectionThreshold = 60000
 
         config.isAutoCommit = false
-        // Only set transaction isolation for H2 (development), PostgreSQL handles this differently
+        // H2 only - PostgreSQL handles isolation differently
         if (!IS_PRODUCTION) {
             config.transactionIsolation = "TRANSACTION_REPEATABLE_READ"
         }
         config.poolName = "EcomoraHikariPool"
 
-        // Connection validation
+        // Validation
         config.validationTimeout = 5000
         config.connectionTestQuery = "SELECT 1"
 
-        // SSL only for production/PostgreSQL
+        // PostgreSQL SSL
         if (IS_PRODUCTION) {
             config.addDataSourceProperty("ssl", "true")
             config.addDataSourceProperty("sslmode", "require")
@@ -136,26 +118,14 @@ object DatabaseFactory {
         return HikariDataSource(config)
     }
 
-    /**
-     * A utility function that wraps database operations inside a coroutine and Exposed transaction.
-     *
-     * This ensures:
-     * - DB operations run on the IO dispatcher.
-     * - All operations are executed inside a transaction.
-     *
-     * @param block A lambda that contains the DB operation.
-     * @return The result of the DB operation.
-     */
+    // Coroutine DB wrapper
     suspend fun <T> dbQuery(block: () -> T): T = withContext(Dispatchers.IO) {
-        // Run block inside an exposed transaction
         transaction {
             block()
         }
     }
 
-    /**
-     * Clean shutdown of the database connection pool
-     */
+    // Cleanup
     fun close() {
         dataSource?.close()
         isInitialized = false

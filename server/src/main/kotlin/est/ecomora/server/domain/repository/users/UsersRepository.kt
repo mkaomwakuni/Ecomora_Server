@@ -18,9 +18,7 @@ import org.jetbrains.exposed.sql.update
 
 class UsersRepositoryImpl : UsersDao {
 
-    /**
-     * Converts a database result row to a Users domain model object.
-     */
+    // Convert DB row to Users model
     private fun rowToResponse(row: ResultRow): Users? {
         return try {
             Users(

@@ -3,9 +3,7 @@ package est.ecomora.server.domain.service
 import at.favre.lib.crypto.bcrypt.BCrypt
 import java.util.Base64
 
-/**
- * Password service using BCrypt for secure password hashing
- */
+// BCrypt password service
 object PasswordService {
     private const val BCRYPT_COST = 12 // Higher cost = more secure but slower
 

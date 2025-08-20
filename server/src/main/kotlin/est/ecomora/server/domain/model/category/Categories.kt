@@ -2,9 +2,7 @@ package est.ecomora.server.domain.model.category
 
 import kotlinx.serialization.Serializable
 
-/**
- * Category type enum to distinguish between product and service categories
- */
+// Category type enum
 enum class CategoryType(val displayName: String) {
     PRODUCT("Product"),
     SERVICE("Service")

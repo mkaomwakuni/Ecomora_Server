@@ -3,11 +3,7 @@ package est.ecomora.server.data.repository.users
 import est.ecomora.server.domain.model.users.Users
 
 
-/**
- * Data Access Object (DAO) interface for managing user-related database operations.
- *
- * @see Users The user model representing the structure of user data
- */
+// User data access interface
 interface UsersDao {
     suspend fun signUpUser(
         username: String,
